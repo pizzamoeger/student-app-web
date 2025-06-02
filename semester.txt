@@ -1,0 +1,1 @@
+"[{"classesInSemester":[0],"end":"2025-11-30","id":3,"name":"h hs 25","start":"2025-05-30"},{"classesInSemester":[0,14,17,20,21],"end":"2025-11-26","id":2,"name":"FS25","start":"2025-05-26"}]"
