@@ -25,24 +25,111 @@ const db = getFirestore(app);
 // TODO this is temp temp temp temp!!!!!!!!!!!!!!!!!!!!!!!!
 const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
 
+const container = document.getElementById("classes-div")
+
+let currentlyEditingCard = null
+
+function renderClassCard(clazz) {
+    const template = document.getElementById("class-blueprint")
+
+    const clone = template.content.cloneNode(true);
+    clone.id = "class" + clazz.id; // set id
+
+    const card = clone.querySelector('.card');
+
+    card.classList.add("class-card");
+    card.style.backgroundColor = intToRGBHex(clazz.color); // set backgroud color
+    card.querySelector('h3').textContent = clazz.name // set name
+    card.querySelector('.editClassButton').addEventListener("click", () => {
+        enterEditMode(clazz, card)
+    });
+    card.querySelector('.deleteClassButton').addEventListener("click", () => deleteClass(clazz.id));
+
+    container.appendChild(card);
+}
+
+
 function displayClasses(classes) {
     for (const clazz of classes) {
         // for each class create a div according to the template
-        const template = document.getElementById("class-blueprint")
-        const container = document.getElementById("classes-div")
+        renderClassCard(clazz)
+    }
+}
 
-        const clone = template.content.cloneNode(true);
-        const card = clone.querySelector('.card');
+function enterEditMode(clazz, card) {
+    // If another card is being edited, reset the UI and then try again
+    if (currentlyEditingCard && currentlyEditingCard !== card) {
+        currentlyEditingCard = null;
+        renderClasses(() => {
+            // Re-enter edit mode once render is complete
+            const newCard = Array.from(container.children).find(c => {
+                return c.querySelector("h3")?.textContent === clazz.name;
+            });
+            if (newCard) enterEditMode(clazz, newCard);
+        });
+        return;
+    }
 
-        clone.id = "class" + clazz.id; // set id
-        card.style.backgroundColor = intToRGBHex(clazz.color); // set backgroud color
-        card.querySelector('h3').textContent = clazz.name // set name
-        card.querySelector('button').addEventListener('click', function() { // connect to edit class
-            editClass(clazz.id) 
+    currentlyEditingCard = card;
+
+    const content = card.querySelector(".content");
+    content.innerHTML = "";
+
+    const titleInput = document.createElement("input");
+    titleInput.type = "text";
+    titleInput.value = clazz.name;
+
+    const colorInput = document.createElement("input");
+    colorInput.type = "color";
+    colorInput.value = intToRGBHex(clazz.color);
+
+    const saveBtn = document.createElement("button");
+    saveBtn.textContent = "💾 Save";
+    saveBtn.addEventListener("click", async () => {
+        const updatedName = titleInput.value.trim();
+        const updatedColor = colorInput.value;
+
+        const docSnap = await getDoc(docRef);
+        if (!docSnap.exists()) return;
+
+        const classList = JSON.parse(docSnap.data().classes || "[]");
+        const index = classList.findIndex(c => c.id === clazz.id);
+        if (index === -1) return;
+
+        classList[index].name = updatedName;
+        classList[index].color = updatedColor;
+
+        await updateDoc(docRef, {
+            classes: JSON.stringify(classList),
         });
 
-        container.appendChild(clone); // add it to the page 
-    }
+        currentlyEditingCard = null;
+        renderClasses();
+    });
+
+    const cancelBtn = document.createElement("button");
+    cancelBtn.textContent = "❌ Cancel";
+    cancelBtn.addEventListener("click", () => {
+        currentlyEditingCard = null;
+        renderClasses();
+    });
+
+    content.appendChild(titleInput);
+    content.appendChild(colorInput);
+    content.appendChild(saveBtn);
+    content.appendChild(cancelBtn);
+}
+
+function renderClasses(callback) {
+    container.innerHTML = ""
+    getClasses()
+        .then(classes => {
+            displayClasses(classes);
+            if (callback) callback(); // Run callback after display is complete
+        })
+        .catch(error => {
+            console.error("Error initializing classes:", error);
+        });
 }
 
 // convert int color to hex color
@@ -58,6 +145,10 @@ function intToRGBHex(intValue) {
 function editClass(id) {
     // id -1 means create a new class
     location.href = `/edit_class.html?id=${id}`;
+}
+
+function deleteClass(id) {
+    
 }
 
 // returns classes that are stored in db
@@ -92,13 +183,7 @@ function getClasses() {
 
 // executed as soon as window is loaded
 window.onload = () => {
-    getClasses() // once get classes returns
-        .then(classes => {
-            displayClasses(classes); // display the classes
-        })
-        .catch(error => {
-            console.error("Error initializing classes:", error);
-        });
+    renderClasses()
     
     // connect the addClassButton to the action
     document.getElementById('addClassButton').addEventListener('click', function() {
