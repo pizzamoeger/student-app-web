@@ -53,22 +53,22 @@
 
         // Convert hex color (#rrggbb) to signed int like before
         let colorInt = parseInt(colorHex.slice(1), 16);
-        if (colorInt > 0x7FFFFFFF) {
-          colorInt = colorInt - 0x100000000;
-        }
-
-        const newClass = {
-          name: name,
-          color: colorInt,
-          grades: [],
-          studyTime: {}
-        };
+        colorInt = (0xFF << 24) | colorInt; // Add full alpha
+        colorInt > 0x7FFFFFFF ? colorInt - 0x100000000 : colorInt;
 
         try {
           // Add a new document to the "classes" collection
           // TODO temp user id is fixed
           const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
           const docSnap = await getDoc(docRef);
+
+          let newClass = {
+            id: 1,
+            name: name,
+            color: colorInt,
+            grades: [],
+            studyTime: {}
+          };
 
           if (docSnap.exists()) {
             const data = docSnap.data();
@@ -77,6 +77,16 @@
           if (data.classes) {
             try {
               classList = JSON.parse(data.classes);
+              id = -1
+              for (clazz in classList) id = max(id, clazz.id)
+              id++
+              newClass = {
+                id: id,
+                name: name,
+                color: colorInt,
+                grades: [],
+                studyTime: {}
+              };
               if (!Array.isArray(classList)) throw new Error("Classes is not an array");
             } catch (err) {
               alert("Failed to parse existing classes JSON.");
