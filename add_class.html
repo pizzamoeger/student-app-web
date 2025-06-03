@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+
+    <!-- Firebase Firestore or Realtime Database -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+
+    <script>// Import the functions you need from the SDKs you need
+		// TODO: Add SDKs for Firebase products that you want to use
+		// https://firebase.google.com/docs/web/setup#available-libraries
+		
+		// Your web app's Firebase configuration
+		// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+		const firebaseConfig = {
+		  apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
+		  authDomain: "student-app-924e4.firebaseapp.com",
+		  projectId: "student-app-924e4",
+		  storageBucket: "student-app-924e4.firebasestorage.app",
+		  messagingSenderId: "1009631248066",
+		  appId: "1:1009631248066:web:53c121933b86f00204855b",
+		  measurementId: "G-935GV9TRS6"
+		};
+				
+		// Initialize Firebase
+		firebase.initializeApp(firebaseConfig);
+		
+		// Choose your database
+		const database = firebase.database();  // for Realtime DB</script>
+
+    <title>Add Class</title>
+</head>
+<body>
+
+    <h2>Contact Form</h2>
+    <form id="addClassForm" action="/submit" method="POST">
+        <label for="name">Class name:</label><br>
+        <input type="text" id="class-name" name="name" required><br><br>
+
+        <label for="class-color">Color:</label><br>
+        <input type="color" id="class-color" name="classColor" value="#ff0000"><br><br>    
+
+        <input type="submit" value="Submit">
+    </form>
+
+    <script>
+        const form = document.getElementById('addClassForm');
+        const result = document.getElementById('result');
+
+        function readUserABC() {
+      const abcRef = database.ref('/user/tljbcyPVmqalX7caNqbYLYhbvJG3');
+      abcRef.once('value')
+        .then((snapshot) => {
+          const value = snapshot.val();
+          console.log(`Value of abc: ${value}`)
+          //document.getElementById('output').textContent = `Value of abc: ${value}`;
+        })
+        .catch((error) => {
+            console.log(`Error: ${error.message}`)
+          //document.getElementById('output').textContent = `Error: ${error.message}`;
+        });
+    }
+      
+        form.addEventListener('submit', function(e) {
+          e.preventDefault();
+      
+          const color = document.getElementById('class-color').value;
+          const name = document.getElementById('class-name').value;
+
+          readUserABC()
+      
+          // Save color in Firebase Realtime Database under "colors"
+          /*database.ref('colors').push({
+            color: color,
+            timestamp: Date.now()
+          })
+          .then(() => {
+            result.textContent = `Color ${color} saved successfully!`;
+          })
+          .catch(error => {
+            result.textContent = 'Error saving color: ' + error.message;
+          });*/
+        });
+      </script>
+
+</body>
+</html>

@@ -26,6 +26,9 @@ function intToRGBHex(intValue) {
     return hex;
 }
   
+function addClass() {
+    location.href = "/add_class.html";
+}
 
 function getClasses() {
     return fetch('data/classes.json')
@@ -41,4 +44,8 @@ window.onload = () => {
         .catch(error => {
             console.error("Error initializing classes:", error);
         });
+    document.getElementById('addClassButton').addEventListener('click', function() {
+        addClass()
+    });
 };
+
