@@ -24,6 +24,8 @@ const db = getFirestore(app);
 const userRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
 
 const form = document.getElementById('addClassForm');
+const nameInput = document.getElementById('class-name');
+const colorInput = document.getElementById('class-color');
 
 const classID = parseInt(new URLSearchParams(window.location.search).get("id"))
 
@@ -44,6 +46,15 @@ function getRandomColorInt() {
     const argb = (0xFF << 24) | (r << 16) | (g << 8) | b;
 
     return (argb >>> 0) > 0x7FFFFFFF ? argb - 0x100000000 : argb;
+}
+
+// convert int to rgb
+function intToRGBHex(intValue) {
+    const unsigned = (intValue + 0x100000000) & 0xFFFFFFFF;
+    const r = (unsigned >> 16) & 0xFF;
+    const g = (unsigned >> 8) & 0xFF;
+    const b = unsigned & 0xFF;
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
 // is executed as soon as userRef is assigned
@@ -77,6 +88,7 @@ getDoc(userRef).then(docSnap => {
         
     }
   
+    console.log(editedClass)
     // set name and color to the one of the editedClass
     nameInput.value = editedClass.name;
     colorInput.value = intToRGBHex(editedClass.color);
