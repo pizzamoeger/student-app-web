@@ -1,10 +1,21 @@
+
 function displayClasses(classes) {
     for (const clazz of classes) {
-        const class_div = document.createElement("div");
-        class_div.id = "class" + clazz.id;
-        class_div.style.backgroundColor = intToRGBHex(clazz.color);
-        class_div.style.height = "20px";
-        document.getElementById("classes-div").appendChild(class_div);
+        const template = document.getElementById("class-blueprint")
+        const container = document.getElementById("classes-div")
+
+        const clone = template.content.cloneNode(true);
+        clone.id = "class" + clazz.id;
+        const card = clone.querySelector('.card');
+        card.style.backgroundColor = intToRGBHex(clazz.color);
+        card.querySelector('h3').textContent = clazz.name
+        //clone.style.height = "20px";
+
+        container.appendChild(clone);
+
+        /*
+                */
+         
     }
 }
 
@@ -48,4 +59,5 @@ window.onload = () => {
         addClass()
     });
 };
+
 

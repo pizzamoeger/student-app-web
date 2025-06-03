@@ -2,12 +2,13 @@
 <html lang="de">
 
 <!--TODO firebase-->
+<!--python -m http.server-->
 
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 
-	<script src="static/js.js"></script>
+	<script src="static/jss.js"></script>
 
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -70,6 +71,15 @@
 		<h1>manage your classes</h1>
 	</div>
 	<button id="addClassButton">Add class</button>
+
+	<template id="class-blueprint">
+		<div class="card">
+		  <h3>Title</h3>
+		  <button id="addClassButton">Add class</button>
+		  <!--<p>This is a reusable card.</p>-->
+		</div>
+	</template>
+
 	<div id="classes-div">
 		<!--classes displayed in here-->
 	</div>
