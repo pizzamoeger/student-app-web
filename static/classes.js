@@ -35,9 +35,6 @@ function displayClasses(classes) {
         //clone.style.height = "20px";
 
         container.appendChild(clone);
-
-        /*
-                */
          
     }
 }
@@ -61,7 +58,7 @@ function intToRGBHex(intValue) {
 }
   
 function addClass() {
-    location.href = "/add_class.html";
+    location.href = `/edit_class.html?id=-1`;
 }
 
 function getClasses() {

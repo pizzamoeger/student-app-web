@@ -9,92 +9,117 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
-  apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
-  authDomain: "student-app-924e4.firebaseapp.com",
-  projectId: "student-app-924e4",
-  storageBucket: "student-app-924e4.firebasestorage.app",
-  messagingSenderId: "1009631248066",
-  appId: "1:1009631248066:web:53c121933b86f00204855b",
-  measurementId: "G-935GV9TRS6"
+    apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
+    authDomain: "student-app-924e4.firebaseapp.com",
+    projectId: "student-app-924e4",
+    storageBucket: "student-app-924e4.firebasestorage.app",
+    messagingSenderId: "1009631248066",
+    appId: "1:1009631248066:web:53c121933b86f00204855b",
+    measurementId: "G-935GV9TRS6"
 };
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
+const userRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
 
 const form = document.getElementById('addClassForm');
 
+const classID = parseInt(new URLSearchParams(window.location.search).get("id"))
+
+let classList = [], classIndex = -1
+let editedClass = { // class that should be edited
+    id: -1,
+    name: "",
+    color: getRandomColorInt(),
+    grades: [],
+    studyTime: {}
+}
+
+// generates a random color int
+function getRandomColorInt() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    const argb = (0xFF << 24) | (r << 16) | (g << 8) | b;
+
+    return (argb >>> 0) > 0x7FFFFFFF ? argb - 0x100000000 : argb;
+}
+
+// is executed as soon as userRef is assigned
+getDoc(userRef).then(docSnap => {
+
+    if (!docSnap.exists()) {
+        alert("User data not found");
+        return;
+    }
+
+    classList = JSON.parse(docSnap.data().classes || []); // get class list
+    
+    if (classID == -1) { // if we want to create a new class
+        
+        let id = -1 // get the id of the new class
+        for (let clazz in classList) {
+            id = max(id, clazz.id)
+        }
+        id++
+
+        editedClass.id = id // set the id
+        classIndex = -1
+    } else {
+        // find the class with the corresponding id and set editedClass to id
+        classIndex = classList.findIndex(c => c.id === classID);
+        if (classIndex === -1) {
+            alert("Class not found");
+            return;
+        }
+        editedClass = { ...classList[classIndex] };
+        
+    }
+  
+    // set name and color to the one of the editedClass
+    nameInput.value = editedClass.name;
+    colorInput.value = intToRGBHex(editedClass.color);
+});
+
 function max(a, b) {
-    if (a>= b) return a
+    if (a >= b) return a
     return b
 }
 
+// is executed as soon as submit on form is pressed
 form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  console.log("aaa")
+    e.preventDefault();
 
-  const name = document.getElementById('class-name').value;
-  const colorHex = document.getElementById('class-color').value;
+    // get name and color
+    const name = document.getElementById('class-name').value;
+    const colorHex = document.getElementById('class-color').value;
 
-  // Convert hex color (#rrggbb) to signed int like before
-  let colorInt = parseInt(colorHex.slice(1), 16);
-  colorInt = (0xFF << 24) | colorInt; // Add full alpha
-  colorInt > 0x7FFFFFFF ? colorInt - 0x100000000 : colorInt;
+    // get int color from color
+    let colorInt = parseInt(colorHex.slice(1), 16);
+    colorInt = (0xFF << 24) | colorInt;
+    colorInt > 0x7FFFFFFF ? colorInt - 0x100000000 : colorInt;
 
-  try {
-    // Add a new document to the "classes" collection
-    // TODO temp user id is fixed
-    const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
-    const docSnap = await getDoc(docRef);
+    editedClass.name = name
+    editedClass.color = colorInt
 
-    let newClass = {
-      id: 1,
-      name: name,
-      color: colorInt,
-      grades: [],
-      studyTime: {}
-    };
-
-    if (docSnap.exists()) {
-      const data = docSnap.data();
-      let classList = [];
-
-    if (data.classes) {
-      try {
-        console.log(data.classes)
-        classList = JSON.parse(data.classes);
-        let id = -1
-        for (let clazz in classList) id = max(id, clazz.id)
-            id++
-            newClass = {
-            id: id,
-            name: name,
-            color: colorInt,
-            grades: [],
-            studyTime: {}
-            };
-            if (!Array.isArray(classList)) throw new Error("Classes is not an array");
-      } catch (err) {
-        alert("Failed to parse existing classes JSON.");
-        console.log(err)
-        return;
-      }
-    }
-
-    classList.push(newClass);
-    console.log(JSON.stringify(classList))
-
-    await updateDoc(docRef, {
-      classes: JSON.stringify(classList)
-    });
-
-      alert("Class added successfully!");
-      form.reset();
+    // add or update the edited class
+    if (classIndex == -1) {
+        classList.push(editedClass)
     } else {
-      alert("Document not found.");
+        classList[classIndex] = editedClass
     }
-  } catch (error) {
-    console.error(error);
-    alert("Error: " + error.message);
-  }
+
+    try {
+        // update classes in the firebase doc
+        await updateDoc(userRef, {
+            classes: JSON.stringify(classList)
+        });
+
+        alert("Class saved successfully!");
+        window.location.href = "/classes.html"; // go back to classes
+    } catch (err) {
+        console.error("Failed to update Firestore:", err);
+        alert("Failed to save class.");
+    }
 });
