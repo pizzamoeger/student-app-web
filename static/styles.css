@@ -203,3 +203,29 @@ input[type="color"] {
 		margin: 1rem;
 	}
 }
+
+.main-container {
+	display: flex;
+	height: calc(100vh - 60px); /* Adjust based on your navbar height */
+}
+
+.left-panel {
+	width: 35%;
+	background-color: #f0f0f0;
+	padding: 20px;
+	overflow-y: auto;
+	border-right: 1px solid #ccc;
+}
+
+.right-panel {
+	flex: 1;
+	padding: 20px;
+	background-color: #ffffff;
+	overflow-y: auto;
+}
+
+.card p {
+	margin: 0px 0;
+	padding: 0px;
+	font-weight: normal;
+}

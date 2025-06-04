@@ -38,6 +38,32 @@
 	<div class="abschnitt center">
 		<h1>stopwatch</h1>
 	</div>
+	<div class="main-container">
+		<!-- LEFT SIDE -->
+		<div class="left-panel">
+			<h2>Classes</h2>
+			<div id="classes-div"></div>
+		</div>
+
+		<!-- RIGHT SIDE -->
+		<div class="right-panel">
+			<h2>Stopwatch</h2>
+			<!-- Stopwatch or other right-side content goes here -->
+			<p>This is where the insights will be.</p>
+		</div>
+	</div>
+
+	<!-- Templates -->
+	<template id="stopwatch-class-blueprint-normal">
+		<div class="card">
+			<h3>Title</h3>
+			<p class="today-time">Seconds today: </p>
+			<p class="week-time">Seconds this week: </p>
+			<p class="month-time">Seconds this month: </p>
+		</div>
+	</template>
+
+	<script src="static/stopwatch.js" type="module"></script>
 </body>
 
 </html>
