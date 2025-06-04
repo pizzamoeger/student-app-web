@@ -253,3 +253,78 @@ canvas {
 	width: 300px !important;
 	height: 300px !important;
 }  
+
+/* Layout containers */
+.main-container {
+	display: flex;
+	gap: 32px;
+	padding: 20px;
+  }
+  
+  .left-panel, .right-panel {
+	background: #f9f9f9;
+	padding: 16px;
+	border-radius: 8px;
+  }
+  
+  /* Class cards layout */
+  #classes-div {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 16px;
+  }
+  
+  .class-card {
+	background: white;
+	padding: 16px;
+	border-radius: 8px;
+	width: 200px;
+	box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+  }
+  
+  .class-card h3 {
+	margin: 0 0 8px;
+	font-size: 1.1rem;
+	text-align: center;
+  }
+  
+  .class-card button:disabled {
+	background: #aaa;
+	cursor: not-allowed;
+  }
+  
+  /* Pie charts container */
+  .chart-row {
+	display: flex;
+	gap: 32px;
+	justify-content: center;
+	flex-wrap: wrap;
+  }
+  
+  .chart-container {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	width: 220px;
+  }
+  
+  .chart-container h3 {
+	margin-bottom: 8px;
+	font-size: 1.1rem;
+  }
+  
+  /* Canvas sizing */
+  .chart-container canvas {
+	width: 200px !important;
+	height: 200px !important;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 800px) {
+	.main-container { flex-direction: column; }
+	.chart-row { justify-content: flex-start; }
+  }
+  

@@ -134,9 +134,11 @@ function renderClassCard(clazz) {
     card.querySelector('h3').textContent = clazz.name // set name
 
     const secToday = clazz.studyTime[getDate(new Date())]
-    card.querySelector('.today-time').textContent = "Seconds today: "+formatSeconds(secToday?secToday:0)
-    card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(getSecondsWeek(clazz))
-    card.querySelector('.month-time').textContent = "Seconds this month: "+formatSeconds(getSecondsMonth(clazz))
+    const secWeek = getSecondsWeek(clazz)
+    const secMonth = getSecondsMonth(clazz)
+    card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday?secToday:0)
+    card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek)
+    card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth)
 
     let intervalId = null;
     card.querySelector('#start-button').addEventListener("click", async () => {
@@ -147,9 +149,9 @@ function renderClassCard(clazz) {
             intervalId = setInterval(() => {
                 // Replace this with whatever you want to run every second
                 pendingSeconds++
-                card.querySelector('.today-time').textContent = "Seconds today: "+formatSeconds((secToday?secToday:0)+pendingSeconds)
-                card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(secWeek+pendingSeconds)
-                card.querySelector('.month-time').textContent = "Seconds this month: "+formatSeconds(secMonth+pendingSeconds)
+                card.querySelector('.today-time').textContent = "Today: "+formatSeconds((secToday?secToday:0)+pendingSeconds)
+                card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek+pendingSeconds)
+                card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth+pendingSeconds)
             }, 1000);
         } else {
             currentlyTrackingClass = null
