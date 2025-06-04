@@ -1,0 +1,214 @@
+:root {
+	--black: #000000;
+	--gray-9: #212529;
+	--gray-8: #343A40;
+	--gray-7: #495057;
+	--gray-6: #6C757D;
+	--gray-5: #ADB5BD;
+	--gray-4: #CED4DA;
+	--gray-3: #DEE2E6;
+	--gray-2: #E9ECEF;
+	--gray-1: #F8F9FA;
+	--white: #FFFFFF;
+	--transparent: transparent;
+
+	--red: #FF0000;
+	--orange: #FF8700;
+	--yellow: #FFD300;
+	--green: #DEFF0A;
+	--limegreen: #A1FF0A;
+	--mint: #0AFF99;
+	--cyan: #0AEFFF;
+	--lightblue: #ADD8E6;
+	--blue: #147DF5;
+	--purple: #580AFF;
+	--magenta: #BE0AFF;
+	--light-blue-50: #E1F5FE;
+	--light-blue-200: #81D4FA;
+	--light-blue-600: #039BE5;
+	--light-blue-900: #01579B;
+}  
+  
+
+/* Base styles */
+body {
+	margin: 0;
+	font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	background-color: var(--gray-1);
+	color: var(--gray_8);
+}
+
+h1, h3 {
+	margin: 0 0 1rem;
+}
+
+h1 {
+	font-size: 2rem;
+	text-align: center;
+	padding: 1.5rem 0;
+	color: var(--gray_8);
+}
+
+/* Navigation bar */
+.navbar {
+	background-color: var(--blue);
+	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+
+	display: flex;
+	align-items: center; /* vertically centers contents */
+	justify-content: flex-end; /* aligns items to the right */
+	padding: 1rem 1rem;
+}
+
+.navbar .nav {
+	display: flex;
+	gap: 1rem;
+	align-items: center; /* vertically centers nav links */
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+.navbar .nav-link {
+	color: var(--white) !important;
+	text-decoration: none;
+	padding: 0.5rem 1rem;
+	font-weight: 500;
+	transition: color 0.2s;
+}
+
+.navbar .nav-link:hover {
+	color: var(--lightblue) !important;
+}
+
+.navbar .nav-link.disabled {
+	border-bottom: 2px solid var(--white);
+	cursor: default;
+}
+
+/* Layout helpers */
+.center {
+	text-align: center;
+}
+
+.abschnitt {
+	margin: 2rem auto;
+	max-width: 800px;
+}
+
+/* Button styles */
+.btn-group {
+	display: flex;
+	align-items: center; /* vertically centers contents */
+	justify-content: flex-end; /* aligns items to the right */
+}
+button {
+	display: block;
+	margin: 1rem auto 2rem auto;
+	height: 36px;
+	border: none;
+	background-color: var(--blue);
+	color:var(--white);
+	border-radius: 6px;
+	font-size: 14px;
+	cursor: pointer;
+	padding: 0 12px;
+	transition: background-color 0.2s ease;
+}
+
+button:hover {
+	background-color: var(--lightblue);
+}
+
+#addClassButton {
+	display: block;
+	margin: 1rem auto 2rem auto;
+	background-color: var(--blue);
+}
+
+#addClassButton:hover {
+	background-color: var(--lightblue);
+}
+
+/* Special buttons with icons */
+.saveButton {
+	background-image: url("/img/save_icon_1.svg");
+	background-repeat: no-repeat;
+	background-position: 8px center;
+	background-size: 24px 24px;
+	padding-left: 36px;
+	background-color: #27ae60;
+}
+
+.saveButton:hover {
+	background-color: #2ecc71;
+}
+
+.deleteButton {
+	background-image: url("/img/trash_icon.svg");
+	background-repeat: no-repeat;
+	background-position: 8px center;
+	background-size: 24px 24px;
+	padding-left: 36px;
+	background-color: #c0392b;
+}
+
+.deleteButton:hover {
+	background-color: #e74c3c;
+}
+
+.cancelButton {
+	background-color: #7f8c8d;
+}
+
+.cancelButton:hover {
+	background-color: #95a5a6;
+}
+
+.editButton {
+	background-color: #f39c12;
+}
+
+.editButton:hover {
+	background-color: #f1c40f;
+}
+
+/* Card styles */
+.card {
+	background: white;
+	border-radius: 12px;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+	padding: 1rem 1.5rem;
+	margin: 1rem auto;
+	max-width: 600px;
+	display: flex;
+	flex-direction: column;
+	gap: 0.75rem;
+}
+
+.card h3 {
+	color: #34495e;
+	font-size: 1.25rem;
+}
+
+/* Inputs */
+input[type="text"], input[type="color"] {
+	padding: 0.5rem;
+	font-size: 14px;
+	border-radius: 6px;
+	border: 1px solid #ccc;
+	width: 100%;
+	box-sizing: border-box;
+}
+
+input[type="color"] {
+	padding: 0;
+	height: 36px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+	.card {
+		margin: 1rem;
+	}
+}

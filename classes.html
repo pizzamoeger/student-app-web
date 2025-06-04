@@ -14,8 +14,7 @@
     <!-- Firebase Firestore or Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 
-	<script src="static/classes.js" type="module"></script>
-	<link rel="stylesheet" type="text/css" href="static/style.css">
+	<link rel="stylesheet" type="text/css" href="/static/styles.css">
 
 	<nav class="navbar navbar-dark dark sticky-top">
 		<div class="dark p-4">
@@ -24,7 +23,7 @@
 					<a class="nav-link disabled" href="classes.html">Classes</a>
 				</li>
 				<li class="nav-item">
-					<a class="nav-link text-white" href="stoptwatch.html">Stopwatch</a>
+					<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
 				</li>
 				<li class="nav-item">
 					<a class="nav-link text-white" href="timetable.html">Timteable</a>
@@ -58,15 +57,19 @@
 		  <h3>Title EDITING</h3>
 		  <input type="text" class="nameInput" name="name" required><br><br>
 		  <input type="color" class="colorInput" name="classColor"><br><br>  
-		  <button class="saveButton">Save</button>
-		  <button class="cancelButton">Cancel</button>
-		  <button class="deleteButton">Delete</button>
+		  <div class="btn-group">
+			<button class="saveButton">Save</button>
+			<button class="cancelButton">Cancel</button>
+			<button class="deleteButton">Delete</button>
+		  </div>
 		</div>
 	</template>
 
 	<div id="classes-div">
 		<!--classes displayed in here-->
 	</div>
+
+	<script src="static/classes.js" type="module"></script>
 </body>
 
 </html>
