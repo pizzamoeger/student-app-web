@@ -3,6 +3,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebas
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
+// TODO IMPORTANT http://nest.hackclub.com/
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
 
@@ -27,13 +28,22 @@ const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
 
 const container = document.getElementById("classes-div")
 
-let currentlyEditingCard = null
+var pendingSeconds = 0
+let currentlyTrackingClass = 0
 
 function hexToInt(colorHex) {
     let colorInt = parseInt(colorHex.slice(1), 16);
     colorInt = (0xFF << 24) | colorInt;
     colorInt > 0x7FFFFFFF ? colorInt - 0x100000000 : colorInt;
     return colorInt
+}
+
+function getDate(date) {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months start at 0!
+    const dd = String(date.getDate()).padStart(2, '0');
+
+    const formattedDate = `${yyyy}-${mm}-${dd}`;
 }
 
 function renderClassCard(clazz) {
@@ -47,7 +57,43 @@ function renderClassCard(clazz) {
     card.classList.add("class-card");
     card.style.backgroundColor = intToRGBHex(clazz.color); // set backgroud color
     card.querySelector('h3').textContent = clazz.name // set name
+
+    const secToday = clazz.studyTime[getDate(new Date())]
+    card.querySelector('.today-time').textContent = "Seconds today: "+(secToday?secToday:0)
+    let intervalId = null;
+    card.querySelector('#start-button').addEventListener("click", async () => {
+        if (!intervalId) {
+            if (currentlyTrackingClass) return
+            currentlyTrackingClass = clazz
+            card.querySelector('#start-button').textContent = "Stop"
+            intervalId = setInterval(() => {
+                // Replace this with whatever you want to run every second
+                pendingSeconds++
+                card.querySelector('.today-time').textContent = "Seconds today: "+((secToday?secToday:0)+pendingSeconds)
+
+            }, 1000);
+        } else {
+            currentlyTrackingClass = null
+            card.querySelector('#start-button').textContent = "Start"
+            const docSnap = await getDoc(docRef);
+
+            if (!docSnap.exists()) return;
     
+            const classList = JSON.parse(docSnap.data().classes || "[]");
+            const index = classList.findIndex(c => c.id === clazz.id);
+            if (index === -1) return;
+    
+            classList[index].studyTime[getDate(new Date())] = clazz.studyTime[getDate(new Date())]+pendingSeconds;
+    
+            await updateDoc(docRef, {
+                classes: JSON.stringify(classList),
+            });
+
+            pendingSeconds=0
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+    });
 
     container.appendChild(card);
 }
