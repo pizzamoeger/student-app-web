@@ -165,17 +165,9 @@ button:hover {
 	background-color: #95a5a6;
 }
 
-.editButton {
-	background-color: #f39c12;
-}
-
-.editButton:hover {
-	background-color: #f1c40f;
-}
-
 /* Card styles */
 .card {
-	background: white;
+	background: var(--gray-2);
 	border-radius: 12px;
 	box-shadow: 0 2px 8px rgba(0,0,0,0.05);
 	padding: 1rem 1.5rem;
@@ -187,7 +179,6 @@ button:hover {
 }
 
 .card h3 {
-	color: #34495e;
 	font-size: 1.25rem;
 }
 
@@ -196,7 +187,7 @@ input[type="text"], input[type="color"] {
 	padding: 0.5rem;
 	font-size: 14px;
 	border-radius: 6px;
-	border: 1px solid #ccc;
+	border: 1px solid var(--gray-4);
 	width: 100%;
 	box-sizing: border-box;
 }

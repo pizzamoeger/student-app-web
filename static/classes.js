@@ -157,9 +157,10 @@ async function addClass() {
 
     // id -1 means create a new class
     let id = -1 // get the id of the new class
-    for (let clazz in classList) {
+    for (let clazz of classList) {
         id = max(id, clazz.id)
     }
+    if (id == -1) id = 0
     id++
 
     const clazz = { // class that should be edited
@@ -170,10 +171,16 @@ async function addClass() {
         studyTime: {}
     }
 
-    classList.push(clazz)
+    let newClassList = []
+    newClassList.push(clazz)
+    for (const cl of classList) {
+        console.log(cl)
+        newClassList.push(cl)
+    }
+    console.log(newClassList)
 
     await updateDoc(docRef, {
-        classes: JSON.stringify(classList),
+        classes: JSON.stringify(newClassList),
     });
     renderClasses()
 }
@@ -183,7 +190,9 @@ async function deleteClass(id) {
     if (!docSnap.exists()) return;
 
     const classList = JSON.parse(docSnap.data().classes || "[]");
+    console.log(classList)
     const newClassList = classList.filter(clazz => clazz.id !== id);
+    console.log(newClassList)
 
     await updateDoc(docRef, {
         classes: JSON.stringify(newClassList),
