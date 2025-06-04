@@ -38,7 +38,36 @@ function hexToInt(colorHex) {
     return colorInt
 }
 
-function getDate(date) {
+function formatSeconds(seconds) {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return `${String(hrs).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+}
+
+function getLastWeekDates() {
+    const today = new Date();
+
+    // Get the previous Monday (start of last week)
+    const dayOfWeek = today.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
+    const daysSinceMonday = (dayOfWeek + 6) % 7; // days since last Monday
+    const lastMonday = new Date(today);
+    lastMonday.setDate(today.getDate() - daysSinceMonday - 7);
+
+    // Generate all 7 dates from last Monday to Sunday
+    const dates = [];
+    for (let i = 0; i < 7; i++) {
+        const date = new Date(lastMonday);
+        date.setDate(lastMonday.getDate() + i);
+        dates.push(date.toISOString().split('T')[0]); // format as YYYY-MM-DD
+    }
+
+    return dates;
+}
+
+function getDate(d) {
+    const date = new Date(d);
     const yyyy = date.getFullYear();
     const mm = String(date.getMonth() + 1).padStart(2, '0'); // Months start at 0!
     const dd = String(date.getDate()).padStart(2, '0');
@@ -59,7 +88,15 @@ function renderClassCard(clazz) {
     card.querySelector('h3').textContent = clazz.name // set name
 
     const secToday = clazz.studyTime[getDate(new Date())]
-    card.querySelector('.today-time').textContent = "Seconds today: "+(secToday?secToday:0)
+    card.querySelector('.today-time').textContent = "Seconds today: "+formatSeconds(secToday?secToday:0)
+
+    let secWeek = 0
+    for (const date of getLastWeekDates()) {
+        const secDay = clazz.studyTime[getDate(date)]
+        secWeek += (secDay?secDay:0)
+    }
+    card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(secWeek)
+
     let intervalId = null;
     card.querySelector('#start-button').addEventListener("click", async () => {
         if (!intervalId) {
@@ -69,8 +106,8 @@ function renderClassCard(clazz) {
             intervalId = setInterval(() => {
                 // Replace this with whatever you want to run every second
                 pendingSeconds++
-                card.querySelector('.today-time').textContent = "Seconds today: "+((secToday?secToday:0)+pendingSeconds)
-
+                card.querySelector('.today-time').textContent = "Seconds today: "+formatSeconds((secToday?secToday:0)+pendingSeconds)
+                card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(secWeek)
             }, 1000);
         } else {
             currentlyTrackingClass = null
