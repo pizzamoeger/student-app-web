@@ -31,11 +31,40 @@ const container = document.getElementById("classes-div")
 var pendingSeconds = 0
 let currentlyTrackingClass = 0
 
-function hexToInt(colorHex) {
-    let colorInt = parseInt(colorHex.slice(1), 16);
-    colorInt = (0xFF << 24) | colorInt;
-    colorInt > 0x7FFFFFFF ? colorInt - 0x100000000 : colorInt;
-    return colorInt
+function intToHSL(intColor) {
+    // Extract RGB components from the integer
+    const r = ((intColor >> 16) & 0xFF) / 255;
+    const g = ((intColor >> 8) & 0xFF) / 255;
+    const b = (intColor & 0xFF) / 255;
+
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0; // achromatic
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r:
+                h = (g - b) / d + (g < b ? 6 : 0);
+                break;
+            case g:
+                h = (b - r) / d + 2;
+                break;
+            case b:
+                h = (r - g) / d + 4;
+                break;
+        }
+        h /= 6;
+    }
+
+    // Convert to degrees and percentage
+    h = Math.round(h * 360);
+    s = Math.round(s * 100);
+    l = Math.round(l * 100);
+
+    return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 function formatSeconds(seconds) {
@@ -106,20 +135,8 @@ function renderClassCard(clazz) {
 
     const secToday = clazz.studyTime[getDate(new Date())]
     card.querySelector('.today-time').textContent = "Seconds today: "+formatSeconds(secToday?secToday:0)
-
-    let secWeek = 0
-    for (const date of getLastWeekDates()) {
-        const secDay = clazz.studyTime[getDate(date)]
-        secWeek += (secDay?secDay:0)
-    }
-    card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(secWeek)
-
-    let secMonth = 0
-    for (const date of getLastMonthDates()) {
-        const secDay = clazz.studyTime[getDate(date)]
-        secMonth += (secDay?secDay:0)
-    }
-    card.querySelector('.month-time').textContent = "Seconds this month: "+formatSeconds(secWeek)
+    card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(getSecondsWeek(clazz))
+    card.querySelector('.month-time').textContent = "Seconds this month: "+formatSeconds(getSecondsMonth(clazz))
 
     let intervalId = null;
     card.querySelector('#start-button').addEventListener("click", async () => {
@@ -161,6 +178,24 @@ function renderClassCard(clazz) {
     container.appendChild(card);
 }
 
+function getSecondsWeek(clazz) {
+    let secWeek = 0
+    for (const date of getLastWeekDates()) {
+        const secDay = clazz.studyTime[getDate(date)]
+        secWeek += (secDay?secDay:0)
+    }
+    return secWeek
+}
+
+function getSecondsMonth(clazz) {
+    let secMonth = 0
+    for (const date of getLastMonthDates()) {
+        const secDay = clazz.studyTime[getDate(date)]
+        secMonth += (secDay?secDay:0)
+    }
+    return secMonth
+}
+
 
 function displayClasses(classes) {
     for (const clazz of classes) {
@@ -174,15 +209,56 @@ function save() {
 }
 
 function renderClasses(callback) {
-    container.innerHTML = ""
+    container.innerHTML = "";
     getClasses()
         .then(classes => {
             displayClasses(classes);
-            if (callback) callback(); // Run callback after display is complete
+
+            // Calculate total time per class
+            const pieDataDay = classes.map(clazz => {
+                return { name: clazz.name, time: clazz.studyTime[getDate(new Date())], color : clazz.color };
+            });
+
+            const pieDataWeek = classes.map(clazz => {
+                return { name: clazz.name, time: getSecondsWeek(clazz), color : clazz.color };
+            });
+
+            const pieDataMonth = classes.map(clazz => {
+                return { name: clazz.name, time: getSecondsMonth(clazz), color : clazz.color };
+            });             
+
+            drawPieChart(pieDataDay, 'dayPieChart');
+            drawPieChart(pieDataWeek, 'weekPieChart');
+            drawPieChart(pieDataMonth, 'monthPieChart');
+            if (callback) callback();
         })
         .catch(error => {
             console.error("Error initializing classes:", error);
         });
+}
+
+function drawPieChart(pieData, id) {
+    const ctx = document.getElementById(id).getContext('2d')
+
+    const chart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+            labels: pieData.map(c => c.name),
+            datasets: [{
+                label: 'Study Time Day',
+                data: pieData.map(c => c.time),
+                backgroundColor: pieData.map((c) => intToHSL(c.color)), // unique colors
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'bottom'
+                }
+            }
+        }
+    });
 }
 
 // convert int color to hex color
