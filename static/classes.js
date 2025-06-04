@@ -140,8 +140,9 @@ function renderClasses(callback) {
 }
 
 // convert int color to hex color
+// TODO figure out the correct formula
 function intToRGBHex(intValue) {
-    const unsigned = (intValue + 0x100000000) & 0xFFFFFFFF;
+    const unsigned = (intValue)// + 0x100000000) & 0xFFFFFFFF;
     const r = (unsigned >> 16) & 0xFF;
     const g = (unsigned >> 8) & 0xFF;
     const b = unsigned & 0xFF;
@@ -238,7 +239,7 @@ function getRandomColorInt() {
     const b = Math.floor(Math.random() * 256);
     const argb = (0xFF << 24) | (r << 16) | (g << 8) | b;
 
-    return (argb >>> 0) > 0x7FFFFFFF ? argb - 0x100000000 : argb;
+    return argb;
 }
 
 function max(a, b) {
