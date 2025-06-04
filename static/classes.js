@@ -29,8 +29,15 @@ const container = document.getElementById("classes-div")
 
 let currentlyEditingCard = null
 
+function hexToInt(colorHex) {
+    let colorInt = parseInt(colorHex.slice(1), 16);
+    colorInt = (0xFF << 24) | colorInt;
+    colorInt > 0x7FFFFFFF ? colorInt - 0x100000000 : colorInt;
+    return colorInt
+}
+
 function renderClassCard(clazz) {
-    const template = document.getElementById("class-blueprint")
+    const template = document.getElementById("class-blueprint-normal")
 
     const clone = template.content.cloneNode(true);
     clone.id = "class" + clazz.id; // set id
@@ -40,10 +47,9 @@ function renderClassCard(clazz) {
     card.classList.add("class-card");
     card.style.backgroundColor = intToRGBHex(clazz.color); // set backgroud color
     card.querySelector('h3').textContent = clazz.name // set name
-    card.querySelector('.editClassButton').addEventListener("click", () => {
+    card.querySelector('.editButton').addEventListener("click", () => {
         enterEditMode(clazz, card)
     });
-    card.querySelector('.deleteClassButton').addEventListener("click", () => deleteClass(clazz.id));
 
     container.appendChild(card);
 }
@@ -56,9 +62,13 @@ function displayClasses(classes) {
     }
 }
 
-function enterEditMode(clazz, card) {
+function save() {
+
+}
+
+function enterEditMode(clazz, oldCard) {
     // If another card is being edited, reset the UI and then try again
-    if (currentlyEditingCard && currentlyEditingCard !== card) {
+    if (currentlyEditingCard && currentlyEditingCard !== oldCard) {
         currentlyEditingCard = null;
         renderClasses(() => {
             // Re-enter edit mode once render is complete
@@ -70,24 +80,22 @@ function enterEditMode(clazz, card) {
         return;
     }
 
+    const editTemplate = document.getElementById("class-blueprint-edit");
+    const clone = editTemplate.content.cloneNode(true);
+
+    const card = clone.querySelector('.card');
     currentlyEditingCard = card;
 
-    const content = card.querySelector(".content");
-    content.innerHTML = "";
-
-    const titleInput = document.createElement("input");
-    titleInput.type = "text";
-    titleInput.value = clazz.name;
-
-    const colorInput = document.createElement("input");
-    colorInput.type = "color";
+    const colorInput = card.querySelector('.colorInput')
     colorInput.value = intToRGBHex(clazz.color);
 
-    const saveBtn = document.createElement("button");
-    saveBtn.textContent = "💾 Save";
+    const nameInput = card.querySelector('.nameInput')
+    nameInput.value = clazz.name
+
+    const saveBtn = card.querySelector('.saveButton')
     saveBtn.addEventListener("click", async () => {
-        const updatedName = titleInput.value.trim();
-        const updatedColor = colorInput.value;
+        const updatedName = nameInput.value.trim();
+        const updatedColor = hexToInt(colorInput.value);
 
         const docSnap = await getDoc(docRef);
         if (!docSnap.exists()) return;
@@ -105,19 +113,18 @@ function enterEditMode(clazz, card) {
 
         currentlyEditingCard = null;
         renderClasses();
-    });
+    })
 
-    const cancelBtn = document.createElement("button");
-    cancelBtn.textContent = "❌ Cancel";
+    const cancelBtn = card.querySelector('.cancelButton')
     cancelBtn.addEventListener("click", () => {
         currentlyEditingCard = null;
         renderClasses();
     });
 
-    content.appendChild(titleInput);
-    content.appendChild(colorInput);
-    content.appendChild(saveBtn);
-    content.appendChild(cancelBtn);
+    const deleteBtn = card.querySelector('.deleteButton')
+    deleteBtn.addEventListener("click", () => deleteClass(clazz.id));
+
+    container.replaceChild(card, oldCard);
 }
 
 function renderClasses(callback) {
@@ -142,13 +149,47 @@ function intToRGBHex(intValue) {
 }
   
 // what to do when add class is pressed
-function editClass(id) {
+async function addClass() {
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return;
+
+    let classList = JSON.parse(docSnap.data().classes || "[]")
+
     // id -1 means create a new class
-    location.href = `/edit_class.html?id=${id}`;
+    let id = -1 // get the id of the new class
+    for (let clazz in classList) {
+        id = max(id, clazz.id)
+    }
+    id++
+
+    const clazz = { // class that should be edited
+        id: id,
+        name: "New Class",
+        color: getRandomColorInt(),
+        grades: [],
+        studyTime: {}
+    }
+
+    classList.push(clazz)
+
+    await updateDoc(docRef, {
+        classes: JSON.stringify(classList),
+    });
+    renderClasses()
 }
 
-function deleteClass(id) {
-    
+async function deleteClass(id) {
+    const docSnap = await getDoc(docRef);
+    if (!docSnap.exists()) return;
+
+    const classList = JSON.parse(docSnap.data().classes || "[]");
+    const newClassList = classList.filter(clazz => clazz.id !== id);
+
+    await updateDoc(docRef, {
+        classes: JSON.stringify(newClassList),
+    });
+    currentlyEditingCard = null
+    renderClasses()
 }
 
 // returns classes that are stored in db
@@ -181,13 +222,28 @@ function getClasses() {
         });
 }
 
+// generates a random color int
+function getRandomColorInt() {
+    const r = Math.floor(Math.random() * 256);
+    const g = Math.floor(Math.random() * 256);
+    const b = Math.floor(Math.random() * 256);
+    const argb = (0xFF << 24) | (r << 16) | (g << 8) | b;
+
+    return (argb >>> 0) > 0x7FFFFFFF ? argb - 0x100000000 : argb;
+}
+
+function max(a, b) {
+    if (a >= b) return a
+    return b
+}
+
 // executed as soon as window is loaded
 window.onload = () => {
     renderClasses()
     
     // connect the addClassButton to the action
     document.getElementById('addClassButton').addEventListener('click', function() {
-        editClass(-1) // -1 is for creating a new class
+        addClass()
     });
 };
 
