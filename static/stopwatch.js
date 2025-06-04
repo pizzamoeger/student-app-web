@@ -53,7 +53,7 @@ function getLastWeekDates() {
     const dayOfWeek = today.getDay(); // Sunday = 0, Monday = 1, ..., Saturday = 6
     const daysSinceMonday = (dayOfWeek + 6) % 7; // days since last Monday
     const lastMonday = new Date(today);
-    lastMonday.setDate(today.getDate() - daysSinceMonday - 7);
+    lastMonday.setDate(today.getDate() - daysSinceMonday );
 
     // Generate all 7 dates from last Monday to Sunday
     const dates = [];
@@ -66,6 +66,22 @@ function getLastWeekDates() {
     return dates;
 }
 
+function getLastMonthDates() {
+    const today = new Date();
+    const firstOfMonth = new Date(today);
+    firstOfMonth.setDate(1)
+
+    const dates = [];
+    for (let i = 0; i <= 31; i++) {
+        const date = new Date(firstOfMonth);
+        date.setDate(firstOfMonth.getDate() + i);
+        if (date.getMonth() != today.getMonth()) break
+        dates.push(date.toISOString().split('T')[0]);
+    }
+
+    return dates
+}
+
 function getDate(d) {
     const date = new Date(d);
     const yyyy = date.getFullYear();
@@ -73,6 +89,7 @@ function getDate(d) {
     const dd = String(date.getDate()).padStart(2, '0');
 
     const formattedDate = `${yyyy}-${mm}-${dd}`;
+    return formattedDate.toString()
 }
 
 function renderClassCard(clazz) {
@@ -97,6 +114,13 @@ function renderClassCard(clazz) {
     }
     card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(secWeek)
 
+    let secMonth = 0
+    for (const date of getLastMonthDates()) {
+        const secDay = clazz.studyTime[getDate(date)]
+        secMonth += (secDay?secDay:0)
+    }
+    card.querySelector('.month-time').textContent = "Seconds this month: "+formatSeconds(secWeek)
+
     let intervalId = null;
     card.querySelector('#start-button').addEventListener("click", async () => {
         if (!intervalId) {
@@ -107,7 +131,8 @@ function renderClassCard(clazz) {
                 // Replace this with whatever you want to run every second
                 pendingSeconds++
                 card.querySelector('.today-time').textContent = "Seconds today: "+formatSeconds((secToday?secToday:0)+pendingSeconds)
-                card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(secWeek)
+                card.querySelector('.week-time').textContent = "Seconds this week: "+formatSeconds(secWeek+pendingSeconds)
+                card.querySelector('.month-time').textContent = "Seconds this month: "+formatSeconds(secMonth+pendingSeconds)
             }, 1000);
         } else {
             currentlyTrackingClass = null
@@ -120,6 +145,7 @@ function renderClassCard(clazz) {
             const index = classList.findIndex(c => c.id === clazz.id);
             if (index === -1) return;
     
+            console.log(getDate(new Date()))
             classList[index].studyTime[getDate(new Date())] = clazz.studyTime[getDate(new Date())]+pendingSeconds;
     
             await updateDoc(docRef, {
