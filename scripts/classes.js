@@ -1,3 +1,19 @@
+// executed as soon as window is loaded
+export function renderScreen(dataArg) { // TODO export temporary
+    data = dataArg
+    //classes = JSON.parse(data.classes || "[]");
+    //console.log(classes)
+    renderClasses()
+    
+    // connect the addClassButton to the action
+    document.getElementById('addClassButton').addEventListener('click', function() {
+        addClass()
+    });
+};
+
+var data = null
+//var classes = null
+
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
 import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
@@ -11,7 +27,7 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.
 
 
 // TODO this is temp temp temp temp!!!!!!!!!!!!!!!!!!!!!!!!
-/*const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
+//const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
 
 const container = document.getElementById("classes-div")
 
@@ -48,10 +64,6 @@ function displayClasses(classes) {
         // for each class create a div according to the template
         renderClassCard(clazz)
     }
-}
-
-function save() {
-
 }
 
 function enterEditMode(clazz, oldCard) {
@@ -192,32 +204,21 @@ async function deleteClass(id) {
 
 // returns classes that are stored in db
 function getClasses() {
-    return getDoc(docRef)
-        // get the classes once the document is loaded
-        .then((docSnap) => {
-            if (!docSnap.exists()) {
-                throw new Error("Document not found");
-            }
-
-            const data = docSnap.data();
-            const classString = data.classes; // get the classes field
-
-            try {
-                // try parsing it
-                const classList = JSON.parse(classString);
-                if (!Array.isArray(classList)) {
-                    throw new Error("Parsed classes is not an array");
-                }
-                return classList;
-            } catch (err) {
-                console.error("Error parsing 'classes':", err);
-                throw err;
-            }
-        })
-        .catch((error) => {
-            console.error("Error fetching from Firestore:", error);
-            throw error;
-        });
+    console.log(data)
+    const classString = data.classes; // get the classes field
+    console.log(classString)
+    try {
+        // try parsing it
+        const classList = JSON.parse(classString);
+        if (!Array.isArray(classList)) {
+            throw new Error("Parsed classes is not an array");
+        }
+        console.log(classList)
+        return classList;
+    } catch (err) {
+        console.error("Error parsing 'classes':", err);
+        throw err;
+    }
 }
 
 // generates a random color int
@@ -234,16 +235,6 @@ function max(a, b) {
     if (a >= b) return a
     return b
 }
-
-// executed as soon as window is loaded
-window.onload = () => {
-    renderClasses()
-    
-    // connect the addClassButton to the action
-    document.getElementById('addClassButton').addEventListener('click', function() {
-        addClass()
-    });
-};*/
 
 // setup materialize components
 document.addEventListener('DOMContentLoaded', function() {

@@ -1,3 +1,25 @@
+import { renderScreen } from './classes.js'; // TODO temp
+
+// get data from db
+
+// listen for auth status changes
+auth.onAuthStateChanged(user => {
+    if (user) { // user is logged in
+        const uid = user.uid;
+        db.collection("user").doc(uid).get().then(doc => {
+            console.log(doc); // this is the user data
+            if (doc.exists) {
+                console.log(doc.data());
+                renderScreen(doc.data());
+            } else {
+                console.log("No such document for this user.");
+            }
+        });
+    } else {
+        // render that the user has to log in first
+    }
+});
+
 // sign up
 const signUpForm = document.querySelector("#signup-form");
 signUpForm.addEventListener("submit", (e)=> {
@@ -9,7 +31,6 @@ signUpForm.addEventListener("submit", (e)=> {
 
     // sign up
     auth.createUserWithEmailAndPassword(email, password).then(cred => {
-        console.log(cred.user)
         // close signup modal and reset form
         const modal = document.querySelector("#modal-signup");
         M.Modal.getInstance(modal).close();
@@ -21,9 +42,7 @@ signUpForm.addEventListener("submit", (e)=> {
 const logout = document.querySelector("#logout");
 logout.addEventListener("click", (e) => {
     e.preventDefault();
-    auth.signOut().then(() => {
-        console.log("user logged out");
-    });
+    auth.signOut();
 });
 
 // login
@@ -36,7 +55,6 @@ loginForm.addEventListener("submit", (e) => {
     const password = loginForm["login-password"].value;
 
     auth.signInWithEmailAndPassword(email, password).then(cred => {
-        console.log(cred.user);
         const modal = document.querySelector("#modal-login");
         M.Modal.getInstance(modal).close();
         loginForm.reset();
