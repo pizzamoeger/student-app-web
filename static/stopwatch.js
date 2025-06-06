@@ -121,6 +121,10 @@ function getDate(d) {
     return formattedDate.toString()
 }
 
+function wait(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}  
+
 function renderClassCard(clazz) {
     const template = document.getElementById("stopwatch-class-blueprint-normal")
 
@@ -154,6 +158,7 @@ function renderClassCard(clazz) {
                 card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth++)
             }, 1000);
         } else {
+            showSavingOverlay()
             const docSnap = await getDoc(docRef);
             currentlyTrackingClass=null
 
@@ -163,33 +168,45 @@ function renderClassCard(clazz) {
             const index = classList.findIndex(c => c.id === clazz.id);
             if (index === -1) return;
     
-            console.log(getDate(new Date()))
             classList[index].studyTime[getDate(new Date())] = clazz.studyTime[getDate(new Date())]+pendingSeconds;
-
-
-            await updateDoc(docRef, {
-                classes: JSON.stringify(classList),
-            });
-
-            // Ensure the update is committed by reading it back
-            const verifySnap = await getDoc(docRef);
-            const verifyData = JSON.parse(verifySnap.data().classes || "[]");
-
-            const verifyClass = verifyData.find(c => c.id === clazz.id);
-            if (!verifyClass || verifyClass.studyTime[getDate(new Date())] !== classList[index].studyTime[getDate(new Date())]) {
-                console.error("Update failed to persist!");
-                alert("Something went wrong saving your time. Please wait and try again.");
-                return;
-            }
 
             pendingSeconds=0
             clearInterval(intervalId)
             intervalId=null
             card.querySelector('#start-button').textContent = "Start"
+            
+            await updateDoc(docRef, {
+                classes: JSON.stringify(classList),
+            });
+
+            // Ensure the update is committed by reading it back
+            let verifySnap = await getDoc(docRef);
+            let verifyData = JSON.parse(verifySnap.data().classes || "[]");
+            let verifyClass = verifyData.find(c => c.id === clazz.id);
+
+            while (!verifyClass || verifyClass.studyTime[getDate(new Date())] !== classList[index].studyTime[getDate(new Date())]) {
+                console.error("Update failed to persistt!");
+                await wait(500)
+                verifySnap = await getDoc(docRef);
+                verifyData = JSON.parse(verifySnap.data().classes || "[]");
+                verifyClass = verifyData.find(c => c.id === clazz.id);
+                //alert("Something went wrong saving your time. Please wait and try again.");
+                //return;
+            }
+
+            hideSavingOverlay()
         }
     });
 
     container.appendChild(card);
+}
+
+function showSavingOverlay() {
+    document.getElementById('saving-overlay').style.display = 'flex';
+}
+
+function hideSavingOverlay() {
+    document.getElementById('saving-overlay').style.display = 'none';
 }
 
 function getSecondsWeek(clazz) {
