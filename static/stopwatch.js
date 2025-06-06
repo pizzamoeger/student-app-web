@@ -133,9 +133,9 @@ function renderClassCard(clazz) {
     card.style.backgroundColor = intToRGBHex(clazz.color); // set backgroud color
     card.querySelector('h3').textContent = clazz.name // set name
 
-    const secToday = clazz.studyTime[getDate(new Date())]
-    const secWeek = getSecondsWeek(clazz)
-    const secMonth = getSecondsMonth(clazz)
+    var secToday = clazz.studyTime[getDate(new Date())]?clazz.studyTime[getDate(new Date())]:0
+    var secWeek = getSecondsWeek(clazz)
+    var secMonth = getSecondsMonth(clazz)
     card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday?secToday:0)
     card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek)
     card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth)
@@ -149,14 +149,13 @@ function renderClassCard(clazz) {
             intervalId = setInterval(() => {
                 // Replace this with whatever you want to run every second
                 pendingSeconds++
-                card.querySelector('.today-time').textContent = "Today: "+formatSeconds((secToday?secToday:0)+pendingSeconds)
-                card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek+pendingSeconds)
-                card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth+pendingSeconds)
+                card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday++)
+                card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek++)
+                card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth++)
             }, 1000);
         } else {
-            currentlyTrackingClass = null
-            card.querySelector('#start-button').textContent = "Start"
             const docSnap = await getDoc(docRef);
+            currentlyTrackingClass=null
 
             if (!docSnap.exists()) return;
     
@@ -166,14 +165,27 @@ function renderClassCard(clazz) {
     
             console.log(getDate(new Date()))
             classList[index].studyTime[getDate(new Date())] = clazz.studyTime[getDate(new Date())]+pendingSeconds;
-    
+
+
             await updateDoc(docRef, {
                 classes: JSON.stringify(classList),
             });
 
+            // Ensure the update is committed by reading it back
+            const verifySnap = await getDoc(docRef);
+            const verifyData = JSON.parse(verifySnap.data().classes || "[]");
+
+            const verifyClass = verifyData.find(c => c.id === clazz.id);
+            if (!verifyClass || verifyClass.studyTime[getDate(new Date())] !== classList[index].studyTime[getDate(new Date())]) {
+                console.error("Update failed to persist!");
+                alert("Something went wrong saving your time. Please wait and try again.");
+                return;
+            }
+
             pendingSeconds=0
-            clearInterval(intervalId);
-            intervalId = null;
+            clearInterval(intervalId)
+            intervalId=null
+            card.querySelector('#start-button').textContent = "Start"
         }
     });
 
