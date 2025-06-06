@@ -8,22 +8,10 @@ import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-    apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
-    authDomain: "student-app-924e4.firebaseapp.com",
-    projectId: "student-app-924e4",
-    storageBucket: "student-app-924e4.firebasestorage.app",
-    messagingSenderId: "1009631248066",
-    appId: "1:1009631248066:web:53c121933b86f00204855b",
-    measurementId: "G-935GV9TRS6"
-};
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
 
 // TODO this is temp temp temp temp!!!!!!!!!!!!!!!!!!!!!!!!
-const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
+/*const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
 
 const container = document.getElementById("classes-div")
 
@@ -255,7 +243,7 @@ window.onload = () => {
     document.getElementById('addClassButton').addEventListener('click', function() {
         addClass()
     });
-};
+};*/
 
 // setup materialize components
 document.addEventListener('DOMContentLoaded', function() {

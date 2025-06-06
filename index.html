@@ -7,13 +7,6 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- Firebase App (the core Firebase SDK) -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-
-    <!-- Firebase Firestore or Realtime Database -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
 	<link rel="stylesheet" type="text/css" href="/static/styles.css">
 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
@@ -119,6 +112,33 @@
 		</div>
 	</div>
 
+
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-auth.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-firestore.js"></script>
+	
+	<script>
+		const firebaseConfig = {
+			apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
+			authDomain: "student-app-924e4.firebaseapp.com",
+			projectId: "student-app-924e4",
+			storageBucket: "student-app-924e4.firebasestorage.app",
+			messagingSenderId: "1009631248066",
+			appId: "1:1009631248066:web:53c121933b86f00204855b",
+			measurementId: "G-935GV9TRS6"
+		};
+
+		// Initialize Firebase
+		firebase.initializeApp(firebaseConfig);
+		//const db = firebase.getFirestore(app);
+
+		// make auth and firestore refereces
+		const auth = firebase.auth();
+		const db = firebase.firestore();
+
+		db.settings({ timestampsInSnapshots: true });
+	</script>
 	<script src="static/classes.js" type="module"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="scripts/auth.js"></script>
