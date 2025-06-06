@@ -1,5 +1,5 @@
 ﻿<!DOCTYPE html>
-<html lang="de">
+<html lang="en">
 
 <!--TODO firebase-->
 <!--python -m http.server-->
@@ -16,34 +16,80 @@
 
 	<link rel="stylesheet" type="text/css" href="/static/styles.css">
 
-	<nav class="navbar navbar-dark dark sticky-top">
-		<div class="dark p-4">
-			<ul class="nav justify-content-end">
-				<li class="nav-item">
-					<a class="nav-link disabled" href="index.html">Classes</a>
-				</li>
-				<li class="nav-item"> 
-					<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-white" href="timetable.html">Timteable</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-white" href="assignments.html">Assignments</a>
-				</li>
-			</ul>
-		</div>
-	</nav>
-
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 	<title>Classes</title>
 </head>
 
 <body id="classes">
-	
-	<div class="abschnitt center">
-		<h1>Manage your classes</h1>
+
+	<!-- NAVBAR -->
+	<nav class="z-depth-0 lighten-4 navbar">
+		<div class="nav-wrapper container">
+			<!--<a href="#" class="brand-logo">
+			<img src="img/logo.svg" style="width: 8px; margin-top: 10px;">
+			</a>-->
+			<ul id="nav-mobile" class="right hide-on-med-and-down nav justify-content-end">
+				<li class="logged-in">
+				<a href="#" class="nav-link text-white" id="logout">Logout</a>
+				</li>
+				<li class="logged-out">
+				<a href="#" class="nav-link text-white modal-trigger" data-target="modal-login">Login</a>
+				</li>
+				<li class="logged-out">
+				<a href="#" class="nav-link text-white modal-trigger" data-target="modal-signup">Sign up</a>
+				</li>
+				<li class="nav-item">
+				<a class="nav-link  text-white" href="index.html">Classes</a>
+			</li>
+			<li class="nav-item logged-in"> 
+				<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
+			</li>
+			<li class="nav-item logged-in">
+				<a class="nav-link text-white" href="timetable.html">Timteable</a>
+			</li>
+			<li class="nav-item logged-in">
+				<a class="nav-link text-white" href="assignments.html">Assignments</a>
+			</li>
+			</span>
+			</ul>
+		</div>
+	</nav>
+
+	  <!-- SIGN UP MODAL -->
+	<div id="modal-signup" class="modal">
+		<div class="modal-content">
+			<h4>Sign up</h4><br />
+			<form id="signup-form">
+			<div class="input-field">
+				<input type="email" id="signup-email" required />
+				<label for="signup-email">Email address</label>
+			</div>
+			<div class="input-field">
+				<input type="password" id="signup-password" required />
+				<label for="signup-password">Choose password</label>
+			</div>
+			<button class="btn yellow darken-2 z-depth-0">Sign up</button>
+			</form>
+		</div>
 	</div>
-	<button id="addClassButton">Add class</button>
+
+	<!-- LOGIN MODAL -->
+	<div id="modal-login" class="modal">
+		<div class="modal-content">
+			<h4>Login</h4><br />
+			<form id="login-form">
+			<div class="input-field">
+				<input type="email" id="login-email" required />
+				<label for="login-email">Email address</label>
+			</div>
+			<div class="input-field">
+				<input type="password" id="login-password" required />
+				<label for="login-password">Your password</label>
+			</div>
+			<button class="btn yellow darken-2 z-depth-0">Login</button>
+			</form>
+		</div>
+	</div>
 
 	<template id="class-blueprint-normal">
 		<div class="card">
@@ -65,11 +111,18 @@
 		</div>
 	</template>
 
-	<div id="classes-div">
-		<!--classes displayed in here-->
+	<div class="container">
+		<h1>Manage your classes</h1>
+		<button id="addClassButton">Add class</button>
+		<div id="classes-div">
+			<!--classes displayed in here-->
+		</div>
 	</div>
 
 	<script src="static/classes.js" type="module"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script src="scripts/auth.js"></script>
+	<!--<script src="scripts/index.js"></script>-->
 </body>
 
 </html>

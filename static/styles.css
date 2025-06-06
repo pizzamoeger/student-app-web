@@ -52,33 +52,13 @@ h1 {
 /* Navigation bar */
 .navbar {
 	background-color: var(--blue);
-	box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-
-	display: flex;
-	align-items: center; /* vertically centers contents */
-	justify-content: flex-end; /* aligns items to the right */
-	padding: 1rem 1rem;
-}
-
-.navbar .nav {
-	display: flex;
-	gap: 1rem;
-	align-items: center; /* vertically centers nav links */
-	list-style: none;
-	margin: 0;
-	padding: 0;
 }
 
 .navbar .nav-link {
 	color: var(--white) !important;
 	text-decoration: none;
-	padding: 0.5rem 1rem;
 	font-weight: 500;
 	transition: color 0.2s;
-}
-
-.navbar .nav-link:hover {
-	color: var(--lightblue) !important;
 }
 
 .navbar .nav-link.disabled {
