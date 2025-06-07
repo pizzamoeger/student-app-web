@@ -29,11 +29,6 @@ export function renderScreen() { // TODO export temporary
     });
 };
 
-// Import the functions you need from the SDKs you need
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-
-
 function hexToInt(colorHex) {
     let colorInt = parseInt(colorHex.slice(1), 16);
     colorInt = (0xFF << 24) | colorInt;
@@ -95,18 +90,19 @@ function enterEditMode(clazz, oldCard) {
 
     const saveBtn = card.querySelector('.saveButton')
     saveBtn.addEventListener("click", async () => {
+        showSavingOverlay()
         const updatedName = nameInput.value.trim();
         const updatedColor = hexToInt(colorInput.value);
 
-        const index = classes.findIndex(c => c.id === clazz.id);
+        const classList = getClasses();
+
+        const index = classList.findIndex(c => c.id === clazz.id);
         if (index === -1) return;
 
         classList[index].name = updatedName;
         classList[index].color = updatedColor;
 
-        await updateDoc(docRef, {
-            classes: JSON.stringify(classList),
-        });
+        await saveNewClassList(classList);
 
         currentlyEditingCard = null;
         renderClasses();
@@ -148,6 +144,31 @@ function showSavingOverlay() {
 function hideSavingOverlay() {
     document.getElementById('saving-overlay').style.display = 'none';
 }
+
+async function saveNewClassList(newClassList) {
+    const classString = JSON.stringify(newClassList)
+    data.classes = classString;
+    await saveNewClassListToDB(classString)
+}
+
+async function saveNewClassListToDB(classString) {
+    const docRef = db.collection("user").doc(uid);
+    const docSnap = await docRef.get();
+
+    console.log("Saving classes as " + classString)
+
+    if (!docSnap.exists) {
+        console.log("No such document exists. Creating it...");
+        await docRef.set({
+            classes: classString,
+        });
+    } else {
+        console.log("Document exists. Updating it...");
+        await docRef.update({
+            classes: classString,
+        });
+    }
+}
   
 // what to do when add class is pressed
 async function addClass() {
@@ -175,39 +196,17 @@ async function addClass() {
     for (const cl of classList) {
         newClassList.push(cl)
     }
-    console.log(newClassList)
 
-    const docRef = db.collection("user").doc(uid);
-    const docSnap = await docRef.get();
-
-    if (!docSnap.exists) {
-        console.log("No such document exists. Creating it...");
-        await docRef.set({
-            classes: JSON.stringify(newClassList),
-        });
-    } else {
-        console.log("Document exists. Updating it...");
-        await docRef.update({
-            classes: JSON.stringify(newClassList),
-        });
-    }
-
+    await saveNewClassList(newClassList)
     renderScreen()
 }
 
 async function deleteClass(id) {
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return;
-
-    const classList = JSON.parse(docSnap.data().classes || "[]");
-    console.log(classList)
+    showSavingOverlay();
+    const classList = getClasses();
     const newClassList = classList.filter(clazz => clazz.id !== id);
-    console.log(newClassList)
 
-    await updateDoc(docRef, {
-        classes: JSON.stringify(newClassList),
-    });
-    currentlyEditingCard = null
+    await saveNewClassList(newClassList)
     renderClasses()
 }
 
@@ -223,7 +222,7 @@ function getClasses() {
         if (!Array.isArray(classList)) {
             throw new Error("Parsed classes is not an array");
         }
-        console.log("returning classes: " + classList)
+        console.log("returning classes: " + classString)
         return classList;
     } catch (err) {
         console.error("Error parsing 'classes':", err);
