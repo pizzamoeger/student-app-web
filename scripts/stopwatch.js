@@ -161,6 +161,7 @@ function renderClassCard(clazz) {
             await saveNewClassList(classList)
 
             hideSavingOverlay()
+            renderClassesStopwatch()
         }
     });
 
@@ -201,11 +202,17 @@ function displayClasses(classes) {
     }
 }
 
+let dayChart = null;
+let weekChart = null;
+let monthChart = null;
 export function renderClassesStopwatch(callback) {
     container.innerHTML = "";
     const classes = getClasses()
     console.log(classes)
     displayClasses(classes)
+
+    if (classes.length === 0) return
+
     // Calculate total time per class
     const pieDataDay = classes.map(clazz => {
         return { name: clazz.name, time: clazz.studyTime[getDate(new Date())], color : clazz.color };
@@ -219,16 +226,20 @@ export function renderClassesStopwatch(callback) {
         return { name: clazz.name, time: getSecondsMonth(clazz), color : clazz.color };
     });             
 
-    drawPieChart(pieDataDay, 'dayPieChart');
-    drawPieChart(pieDataWeek, 'weekPieChart');
-    drawPieChart(pieDataMonth, 'monthPieChart');
+    dayChart = drawPieChart(pieDataDay, 'dayPieChart', dayChart);
+    weekChart = drawPieChart(pieDataWeek, 'weekPieChart', weekChart);
+    monthChart = drawPieChart(pieDataMonth, 'monthPieChart', monthChart);
     if (callback) callback();
 }
 
-function drawPieChart(pieData, id) {
+function drawPieChart(pieData, id, chartRef) {
     const ctx = document.getElementById(id).getContext('2d')
 
-    const chart = new Chart(ctx, {
+    if (chartRef && chartRef instanceof Chart) {
+        chartRef.destroy();
+    }
+
+    return new Chart(ctx, {
         type: 'pie',
         data: {
             labels: pieData.map(c => c.name),
