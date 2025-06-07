@@ -1,32 +1,51 @@
 import { uid } from './auth.js'; // TODO temp
-var data = null
+import { renderClassesStopwatch } from './stopwatch.js';
+export var data = null
 const container = document.getElementById("classes-div")
 let currentlyEditingCard = null
 
 // executed as soon as window is loaded
 export function renderScreen() { // TODO export temporary
-    data = null
+    const currentPage = window.location.pathname;
+    console.log("were here and the path is " + currentPage)
+    if (currentPage === "/index.html") {
+        data = null
 
-    if (!uid) { // user is not logged in
-        renderClasses()
-        return
-    }
-
-    db.collection("user").doc(uid).get().then(doc => {
-        if (doc.exists) {
-            data = doc.data()
-        } else {
-            console.log("No such document for this user.");
+        if (!uid) { // user is not logged in
+            renderClasses()
+            return
         }
-        renderClasses()
-    });
+    
+        db.collection("user").doc(uid).get().then(doc => {
+            if (doc.exists) {
+                data = doc.data()
+            } else {
+                console.log("No such document for this user.");
+            }
+            renderClasses()
+        });
+    
+        // connect the addClassButton to the action
+        document.getElementById('addClassButton').addEventListener('click', function() {
+            addClass()
+        });
+    } else {
+        data = null
 
+        if (!uid) { // user is not logged in
+            renderClassesStopwatch()
+            return
+        }
     
-    
-    // connect the addClassButton to the action
-    document.getElementById('addClassButton').addEventListener('click', function() {
-        addClass()
-    });
+        db.collection("user").doc(uid).get().then(doc => {
+            if (doc.exists) {
+                data = doc.data()
+            } else {
+                console.log("No such document for this user.");
+            }
+            renderClassesStopwatch()
+        });
+    }
 };
 
 function hexToInt(colorHex) {
@@ -145,7 +164,7 @@ function hideSavingOverlay() {
     document.getElementById('saving-overlay').style.display = 'none';
 }
 
-async function saveNewClassList(newClassList) {
+export async function saveNewClassList(newClassList) {
     const classString = JSON.stringify(newClassList)
     data.classes = classString;
     await saveNewClassListToDB(classString)
@@ -211,7 +230,7 @@ async function deleteClass(id) {
 }
 
 // returns classes that are stored in db
-function getClasses() {
+export function getClasses() {
     if (!data) return []
 
     const classString = data.classes; // get the classes field

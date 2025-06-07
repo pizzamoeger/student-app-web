@@ -1,11 +1,4 @@
-// Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
-
-// TODO IMPORTANT http://nest.hackclub.com/
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
+import {getClasses, saveNewClassList, data} from './classes.js';
 
 // Your web app's Firebase configuration
 // For Firebase JS SDK v7.20.0 and later, measurementId is optional
@@ -18,13 +11,6 @@ const firebaseConfig = {
     appId: "1:1009631248066:web:53c121933b86f00204855b",
     measurementId: "G-935GV9TRS6"
 };
-
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
-
-// TODO this is temp temp temp temp!!!!!!!!!!!!!!!!!!!!!!!!
-const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
 
 const container = document.getElementById("classes-div")
 
@@ -159,12 +145,9 @@ function renderClassCard(clazz) {
             }, 1000);
         } else {
             showSavingOverlay()
-            const docSnap = await getDoc(docRef);
             currentlyTrackingClass=null
-
-            if (!docSnap.exists()) return;
     
-            const classList = JSON.parse(docSnap.data().classes || "[]");
+            const classList = JSON.parse(getClasses());
             const index = classList.findIndex(c => c.id === clazz.id);
             if (index === -1) return;
     
@@ -175,24 +158,7 @@ function renderClassCard(clazz) {
             intervalId=null
             card.querySelector('#start-button').textContent = "Start"
             
-            await updateDoc(docRef, {
-                classes: JSON.stringify(classList),
-            });
-
-            // Ensure the update is committed by reading it back
-            let verifySnap = await getDoc(docRef);
-            let verifyData = JSON.parse(verifySnap.data().classes || "[]");
-            let verifyClass = verifyData.find(c => c.id === clazz.id);
-
-            while (!verifyClass || verifyClass.studyTime[getDate(new Date())] !== classList[index].studyTime[getDate(new Date())]) {
-                console.error("Update failed to persistt!");
-                await wait(500)
-                verifySnap = await getDoc(docRef);
-                verifyData = JSON.parse(verifySnap.data().classes || "[]");
-                verifyClass = verifyData.find(c => c.id === clazz.id);
-                //alert("Something went wrong saving your time. Please wait and try again.");
-                //return;
-            }
+            await saveNewClassList(classList)
 
             hideSavingOverlay()
         }
@@ -235,37 +201,28 @@ function displayClasses(classes) {
     }
 }
 
-function save() {
-
-}
-
-function renderClasses(callback) {
+export function renderClassesStopwatch(callback) {
     container.innerHTML = "";
-    getClasses()
-        .then(classes => {
-            displayClasses(classes);
+    const classes = getClasses()
+    console.log(classes)
+    displayClasses(classes)
+    // Calculate total time per class
+    const pieDataDay = classes.map(clazz => {
+        return { name: clazz.name, time: clazz.studyTime[getDate(new Date())], color : clazz.color };
+    });
 
-            // Calculate total time per class
-            const pieDataDay = classes.map(clazz => {
-                return { name: clazz.name, time: clazz.studyTime[getDate(new Date())], color : clazz.color };
-            });
+    const pieDataWeek = classes.map(clazz => {
+        return { name: clazz.name, time: getSecondsWeek(clazz), color : clazz.color };
+    });
 
-            const pieDataWeek = classes.map(clazz => {
-                return { name: clazz.name, time: getSecondsWeek(clazz), color : clazz.color };
-            });
+    const pieDataMonth = classes.map(clazz => {
+        return { name: clazz.name, time: getSecondsMonth(clazz), color : clazz.color };
+    });             
 
-            const pieDataMonth = classes.map(clazz => {
-                return { name: clazz.name, time: getSecondsMonth(clazz), color : clazz.color };
-            });             
-
-            drawPieChart(pieDataDay, 'dayPieChart');
-            drawPieChart(pieDataWeek, 'weekPieChart');
-            drawPieChart(pieDataMonth, 'monthPieChart');
-            if (callback) callback();
-        })
-        .catch(error => {
-            console.error("Error initializing classes:", error);
-        });
+    drawPieChart(pieDataDay, 'dayPieChart');
+    drawPieChart(pieDataWeek, 'weekPieChart');
+    drawPieChart(pieDataMonth, 'monthPieChart');
+    if (callback) callback();
 }
 
 function drawPieChart(pieData, id) {
@@ -302,45 +259,10 @@ function intToRGBHex(intValue) {
     return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
-// returns classes that are stored in db
-function getClasses() {
-    return getDoc(docRef)
-        // get the classes once the document is loaded
-        .then((docSnap) => {
-            if (!docSnap.exists()) {
-                throw new Error("Document not found");
-            }
-
-            const data = docSnap.data();
-            const classString = data.classes; // get the classes field
-
-            try {
-                // try parsing it
-                const classList = JSON.parse(classString);
-                if (!Array.isArray(classList)) {
-                    throw new Error("Parsed classes is not an array");
-                }
-                return classList;
-            } catch (err) {
-                console.error("Error parsing 'classes':", err);
-                throw err;
-            }
-        })
-        .catch((error) => {
-            console.error("Error fetching from Firestore:", error);
-            throw error;
-        });
-}
-
 function max(a, b) {
     if (a >= b) return a
     return b
 }
-
-// executed as soon as window is loaded
-window.onload = () => {
-    renderClasses()
-};
 
 // setup materialize components
 document.addEventListener('DOMContentLoaded', function() {
