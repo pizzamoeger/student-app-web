@@ -28,6 +28,7 @@ auth.onAuthStateChanged(user => {
 const signUpForm = document.querySelector("#signup-form");
 signUpForm.addEventListener("submit", (e)=> {
     e.preventDefault();
+    showSavingOverlay()
 
     // get user info
     const email = signUpForm["signup-email"].value;
@@ -39,6 +40,7 @@ signUpForm.addEventListener("submit", (e)=> {
         const modal = document.querySelector("#modal-signup");
         M.Modal.getInstance(modal).close();
         signUpForm.reset();
+        hideSavingOverlay()
     });
 });
 
@@ -53,6 +55,7 @@ logout.addEventListener("click", (e) => {
 const loginForm = document.querySelector("#login-form");
 loginForm.addEventListener("submit", (e) => {
     e.preventDefault();
+    showSavingOverlay()
 
     // get user info
     const email = loginForm["login-email"].value;
@@ -62,5 +65,14 @@ loginForm.addEventListener("submit", (e) => {
         const modal = document.querySelector("#modal-login");
         M.Modal.getInstance(modal).close();
         loginForm.reset();
+        hideSavingOverlay()
     });
 });
+
+function showSavingOverlay() {
+    document.getElementById('saving-overlay').style.display = 'flex';
+}
+
+function hideSavingOverlay() {
+    document.getElementById('saving-overlay').style.display = 'none';
+}
