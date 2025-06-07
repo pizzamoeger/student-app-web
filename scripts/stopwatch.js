@@ -147,7 +147,7 @@ function renderClassCard(clazz) {
             showSavingOverlay()
             currentlyTrackingClass=null
     
-            const classList = JSON.parse(getClasses());
+            const classList = getClasses();
             const index = classList.findIndex(c => c.id === clazz.id);
             if (index === -1) return;
     
