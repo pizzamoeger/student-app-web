@@ -12,30 +12,44 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
 	<link rel="stylesheet" type="text/css" href="static/styles.css">
 
-	<nav class="navbar navbar-dark dark sticky-top">
-		<div class="dark p-4">
-			<ul class="nav justify-content-end">
-				<li class="nav-item">
-					<a class="nav-link text-white" href="index.html">Classes</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link disabled" href="stopwatch.html">Stopwatch</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-white" href="timetable.html">Timteable</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-white" href="assignments.html">Assignments</a>
-				</li>
-			</ul>
-		</div>
-	</nav>
-
 	<title>stopwatch</title>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body id="stopwatch">
+	<nav class="z-depth-0 lighten-4 navbar">
+		<div class="nav-wrapper container">
+			<!--<a href="#" class="brand-logo">
+			<img src="img/logo.svg" style="width: 8px; margin-top: 10px;">
+			</a>-->
+			<ul id="nav-mobile" class="right hide-on-med-and-down nav justify-content-end">
+				<li class="logged-in">
+				<a href="#" class="nav-link text-white" id="logout">Logout</a>
+				</li>
+				<li class="logged-out">
+				<a href="#" class="nav-link text-white modal-trigger" data-target="modal-login">Login</a>
+				</li>
+				<li class="logged-out">
+				<a href="#" class="nav-link text-white modal-trigger" data-target="modal-signup">Sign up</a>
+				</li>
+				<li class="nav-item logged-in">
+				<a class="nav-link  text-white" href="index.html">Classes</a>
+			</li>
+			<li class="nav-item logged-in"> 
+				<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
+			</li>
+			<!--<li class="nav-item logged-in">
+				<a class="nav-link text-white" href="timetable.html">Timteable</a>
+			</li>
+			<li class="nav-item logged-in">
+				<a class="nav-link text-white" href="assignments.html">Assignments</a>
+			</li>-->
+			</span>
+			</ul>
+		</div>
+	</nav>
+
+
 	<div class="abschnitt center">
 		<h1>Stopwatch</h1>
 	</div>
@@ -84,6 +98,34 @@
 		</div>
 	</div>	  
 
+	<!-- Firebase App (the core Firebase SDK) -->
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-auth.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-firestore.js"></script>
+
+	<script>
+		const firebaseConfig = {
+			apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
+			authDomain: "student-app-924e4.firebaseapp.com",
+			projectId: "student-app-924e4",
+			storageBucket: "student-app-924e4.firebasestorage.app",
+			messagingSenderId: "1009631248066",
+			appId: "1:1009631248066:web:53c121933b86f00204855b",
+			measurementId: "G-935GV9TRS6"
+		};
+
+		// Initialize Firebase
+		firebase.initializeApp(firebaseConfig);
+		//const db = firebase.getFirestore(app);
+
+		// make auth and firestore refereces
+		const auth = firebase.auth();
+		const db = firebase.firestore();
+
+		db.settings({ timestampsInSnapshots: true });
+	</script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script src="scripts/auth.js" type="module"></script> <!--TOOD module temporary-->
 	<script src="static/stopwatch.js" type="module"></script>
 </body>
 

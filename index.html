@@ -31,18 +31,18 @@
 				<li class="logged-out">
 				<a href="#" class="nav-link text-white modal-trigger" data-target="modal-signup">Sign up</a>
 				</li>
-				<li class="nav-item">
+				<li class="nav-item logged-in">
 				<a class="nav-link  text-white" href="index.html">Classes</a>
 			</li>
 			<li class="nav-item logged-in"> 
 				<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
 			</li>
-			<li class="nav-item logged-in">
+			<!--<li class="nav-item logged-in">
 				<a class="nav-link text-white" href="timetable.html">Timteable</a>
 			</li>
 			<li class="nav-item logged-in">
 				<a class="nav-link text-white" href="assignments.html">Assignments</a>
-			</li>
+			</li>-->
 			</span>
 			</ul>
 		</div>
@@ -104,12 +104,16 @@
 		</div>
 	</template>
 
-	<div class="container">
+	<div class="container logged-in">
 		<h1>Manage your classes</h1>
 		<button id="addClassButton">Add class</button>
 		<div id="classes-div">
 			<!--classes displayed in here-->
 		</div>
+	</div>
+
+	<div class="container logged-out">
+		<p>Please log in or sign up to use this website :)</p>
 	</div>
 
 	<div id="saving-overlay">
@@ -148,7 +152,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="scripts/auth.js" type="module"></script> <!--TOOD module temporary-->
 	<script src="scripts/classes.js" type="module"></script>
-	<!--<script src="scripts/index.js"></script>-->
 </body>
 
 </html>

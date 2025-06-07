@@ -6,9 +6,20 @@ export var uid = null
 auth.onAuthStateChanged(user => {
     if (user) { // user is logged in
         uid = user.uid;
+        document.querySelectorAll('.logged-in').forEach(el => {
+            el.style.display = '';
+        });
+        document.querySelectorAll('.logged-out').forEach(el => {
+            el.style.display = 'none';
+        });
     } else {
         uid = null
-        // render that the user has to log in first
+        document.querySelectorAll('.logged-in').forEach(el => {
+            el.style.display = 'none';
+        });
+        document.querySelectorAll('.logged-out').forEach(el => {
+            el.style.display = '';
+        });
     }
     renderScreen()
 });
