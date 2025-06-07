@@ -129,14 +129,8 @@ function enterEditMode(clazz, oldCard) {
 
 function renderClasses(callback) {
     container.innerHTML = ""
-    getClasses()
-        .then(classes => {
-            displayClasses(classes);
-            if (callback) callback(); // Run callback after display is complete
-        })
-        .catch(error => {
-            console.error("Error initializing classes:", error);
-        });
+    displayClasses(getClasses())
+    if (callback) callback()
 }
 
 // convert int color to hex color
