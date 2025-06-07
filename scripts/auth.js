@@ -1,23 +1,16 @@
 import { renderScreen } from './classes.js'; // TODO temp
 
 // get data from db
-
+export var uid = null
 // listen for auth status changes
 auth.onAuthStateChanged(user => {
     if (user) { // user is logged in
-        const uid = user.uid;
-        db.collection("user").doc(uid).get().then(doc => {
-            console.log(doc); // this is the user data
-            if (doc.exists) {
-                console.log(doc.data());
-                renderScreen(doc.data());
-            } else {
-                console.log("No such document for this user.");
-            }
-        });
+        uid = user.uid;
     } else {
+        uid = null
         // render that the user has to log in first
     }
+    renderScreen()
 });
 
 // sign up

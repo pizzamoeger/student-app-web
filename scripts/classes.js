@@ -1,9 +1,27 @@
+import { uid } from './auth.js'; // TODO temp
+var data = null
+const container = document.getElementById("classes-div")
+let currentlyEditingCard = null
+
 // executed as soon as window is loaded
-export function renderScreen(dataArg) { // TODO export temporary
-    data = dataArg
-    //classes = JSON.parse(data.classes || "[]");
-    //console.log(classes)
-    renderClasses()
+export function renderScreen() { // TODO export temporary
+    data = null
+
+    if (!uid) { // user is not logged in
+        renderClasses()
+        return
+    }
+
+    db.collection("user").doc(uid).get().then(doc => {
+        if (doc.exists) {
+            data = doc.data()
+        } else {
+            console.log("No such document for this user.");
+        }
+        renderClasses()
+    });
+
+    
     
     // connect the addClassButton to the action
     document.getElementById('addClassButton').addEventListener('click', function() {
@@ -11,27 +29,10 @@ export function renderScreen(dataArg) { // TODO export temporary
     });
 };
 
-var data = null
-//var classes = null
-
 // Import the functions you need from the SDKs you need
-import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-import { getFirestore, collection, addDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 import { doc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore.js";
 
-// TODO: Add SDKs for Firebase products that you want to use
-// https://firebase.google.com/docs/web/setup#available-libraries
 
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-
-
-// TODO this is temp temp temp temp!!!!!!!!!!!!!!!!!!!!!!!!
-//const docRef = doc(db, "user", "QQdlCkXBdxd0yUQEepkjXQspxXu1");
-
-const container = document.getElementById("classes-div")
-
-let currentlyEditingCard = null
 
 function hexToInt(colorHex) {
     let colorInt = parseInt(colorHex.slice(1), 16);
@@ -97,11 +98,7 @@ function enterEditMode(clazz, oldCard) {
         const updatedName = nameInput.value.trim();
         const updatedColor = hexToInt(colorInput.value);
 
-        const docSnap = await getDoc(docRef);
-        if (!docSnap.exists()) return;
-
-        const classList = JSON.parse(docSnap.data().classes || "[]");
-        const index = classList.findIndex(c => c.id === clazz.id);
+        const index = classes.findIndex(c => c.id === clazz.id);
         if (index === -1) return;
 
         classList[index].name = updatedName;
@@ -131,6 +128,7 @@ function renderClasses(callback) {
     container.innerHTML = ""
     displayClasses(getClasses())
     if (callback) callback()
+    hideSavingOverlay();
 }
 
 // convert int color to hex color
@@ -142,13 +140,19 @@ function intToRGBHex(intValue) {
     const b = unsigned & 0xFF;
     return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
+
+function showSavingOverlay() {
+    document.getElementById('saving-overlay').style.display = 'flex';
+}
+
+function hideSavingOverlay() {
+    document.getElementById('saving-overlay').style.display = 'none';
+}
   
 // what to do when add class is pressed
 async function addClass() {
-    const docSnap = await getDoc(docRef);
-    if (!docSnap.exists()) return;
-
-    let classList = JSON.parse(docSnap.data().classes || "[]")
+    showSavingOverlay()
+    const classList = getClasses()
 
     // id -1 means create a new class
     let id = -1 // get the id of the new class
@@ -169,15 +173,26 @@ async function addClass() {
     let newClassList = []
     newClassList.push(clazz)
     for (const cl of classList) {
-        console.log(cl)
         newClassList.push(cl)
     }
     console.log(newClassList)
 
-    await updateDoc(docRef, {
-        classes: JSON.stringify(newClassList),
-    });
-    renderClasses()
+    const docRef = db.collection("user").doc(uid);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+        console.log("No such document exists. Creating it...");
+        await docRef.set({
+            classes: JSON.stringify(newClassList),
+        });
+    } else {
+        console.log("Document exists. Updating it...");
+        await docRef.update({
+            classes: JSON.stringify(newClassList),
+        });
+    }
+
+    renderScreen()
 }
 
 async function deleteClass(id) {
@@ -198,16 +213,17 @@ async function deleteClass(id) {
 
 // returns classes that are stored in db
 function getClasses() {
-    console.log(data)
+    if (!data) return []
+
     const classString = data.classes; // get the classes field
-    console.log(classString)
+    if (!classString) return []
     try {
         // try parsing it
         const classList = JSON.parse(classString);
         if (!Array.isArray(classList)) {
             throw new Error("Parsed classes is not an array");
         }
-        console.log(classList)
+        console.log("returning classes: " + classList)
         return classList;
     } catch (err) {
         console.error("Error parsing 'classes':", err);
