@@ -21,6 +21,7 @@ export function renderScreen() { // TODO export temporary
                 data = doc.data()
             } else {
                 console.log("No such document for this user.");
+                data = {"classes":"[]"}
             }
             renderClasses()
         });
