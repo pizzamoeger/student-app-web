@@ -7,7 +7,6 @@ let currentlyEditingCard = null
 // executed as soon as window is loaded
 export function renderScreen() { // TODO export temporary
     const currentPage = window.location.pathname;
-    console.log("were here and the path is " + currentPage)
     if (currentPage === "/index.html") {
         data = null
 
@@ -163,15 +162,12 @@ function hideSavingOverlay() {
 export async function saveNewClassList(newClassList) {
     const classString = JSON.stringify(newClassList)
     data.classes = classString;
-    console.log("here")
     await saveNewClassListToDB(classString)
 }
 
 async function saveNewClassListToDB(classString) {
     const docRef = db.collection("user").doc(uid);
     const docSnap = await docRef.get();
-
-    console.log("Saving classes as " + classString)
 
     if (!docSnap.exists) {
         console.log("No such document exists. Creating it...");
@@ -238,7 +234,6 @@ export function getClasses() {
         if (!Array.isArray(classList)) {
             throw new Error("Parsed classes is not an array");
         }
-        console.log("returning classes: " + classString)
         return classList;
     } catch (err) {
         console.error("Error parsing 'classes':", err);
@@ -272,7 +267,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
     // connect the addClassButton to the action
     document.getElementById('addClassButton').addEventListener('click', function() {
-        console.log("clicked")
         addClass()
     });
 });

@@ -208,7 +208,6 @@ let monthChart = null;
 export function renderClassesStopwatch(callback) {
     container.innerHTML = "";
     const classes = getClasses()
-    console.log(classes)
     displayClasses(classes)
 
     if (classes.length === 0) return
