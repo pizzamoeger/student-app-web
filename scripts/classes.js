@@ -162,6 +162,7 @@ function hideSavingOverlay() {
 export async function saveNewClassList(newClassList) {
     const classString = JSON.stringify(newClassList)
     data.classes = classString;
+    console.log(classString)
     await saveNewClassListToDB(classString)
 }
 

@@ -151,7 +151,8 @@ function renderClassCard(clazz) {
             const index = classList.findIndex(c => c.id === clazz.id);
             if (index === -1) return;
     
-            classList[index].studyTime[getDate(new Date())] = clazz.studyTime[getDate(new Date())]+pendingSeconds;
+            const curSecs = classList[index].studyTime[getDate(new Date())];
+            classList[index].studyTime[getDate(new Date())] = curSecs?pendingSeconds:curSecs+pendingSeconds;
 
             pendingSeconds=0
             clearInterval(intervalId)
@@ -215,15 +216,15 @@ export function renderClassesStopwatch(callback) {
     // Calculate total time per class
     const pieDataDay = classes.map(clazz => {
         return { name: clazz.name, time: clazz.studyTime[getDate(new Date())], color : clazz.color };
-    });
+    }).filter(entry => entry.time > 0);
 
     const pieDataWeek = classes.map(clazz => {
         return { name: clazz.name, time: getSecondsWeek(clazz), color : clazz.color };
-    });
+    }).filter(entry => entry.time > 0);
 
     const pieDataMonth = classes.map(clazz => {
         return { name: clazz.name, time: getSecondsMonth(clazz), color : clazz.color };
-    });             
+    }).filter(entry => entry.time > 0);             
 
     dayChart = drawPieChart(pieDataDay, 'dayPieChart', dayChart);
     weekChart = drawPieChart(pieDataWeek, 'weekPieChart', weekChart);
@@ -282,4 +283,6 @@ document.addEventListener('DOMContentLoaded', function() {
   
     var items = document.querySelectorAll('.collapsible');
     M.Collapsible.init(items);
+
+    renderClassesStopwatch()
 });
