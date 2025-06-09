@@ -25,11 +25,6 @@ export function renderScreen() { // TODO export temporary
             }
             renderClasses()
         });
-    
-        // connect the addClassButton to the action
-        document.getElementById('addClassButton').addEventListener('click', function() {
-            addClass()
-        });
     } else {
         data = null
 
@@ -168,6 +163,7 @@ function hideSavingOverlay() {
 export async function saveNewClassList(newClassList) {
     const classString = JSON.stringify(newClassList)
     data.classes = classString;
+    console.log("here")
     await saveNewClassListToDB(classString)
 }
 
@@ -274,4 +270,9 @@ document.addEventListener('DOMContentLoaded', function() {
     var items = document.querySelectorAll('.collapsible');
     M.Collapsible.init(items);
   
+    // connect the addClassButton to the action
+    document.getElementById('addClassButton').addEventListener('click', function() {
+        console.log("clicked")
+        addClass()
+    });
 });
