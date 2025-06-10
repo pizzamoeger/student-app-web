@@ -375,6 +375,24 @@
 			height: 100%;
 		}
 
+		/* Add new styles to prevent date picker from showing on every click */
+		.date-input {
+			position: relative;
+			pointer-events: none;
+		}
+
+		.date-input::-webkit-calendar-picker-indicator {
+			position: absolute;
+			right: 0;
+			top: 0;
+			bottom: 0;
+			width: 20px;
+			height: 100%;
+			opacity: 1;
+			pointer-events: auto;
+			cursor: pointer;
+		}
+
 		.semester-list-content {
 			margin-top: 0;
 		}
@@ -542,11 +560,13 @@
 			const sixMonthsFromNow = new Date();
 			sixMonthsFromNow.setMonth(today.getMonth() + 6);
 
-			const startDateInput = document.getElementById('new-start-date');
-			const endDateInput = document.getElementById('new-end-date');
+			const startDateInput = document.getElementById('start-date');
+			const endDateInput = document.getElementById('end-date');
 
-			startDateInput.value = today.toISOString().split('T')[0];
-			endDateInput.value = sixMonthsFromNow.toISOString().split('T')[0];
+			if (startDateInput && endDateInput) {
+				startDateInput.value = today.toISOString().split('T')[0];
+				endDateInput.value = sixMonthsFromNow.toISOString().split('T')[0];
+			}
 		});
 	</script>
 

@@ -29,18 +29,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    // Add click event listener for the Add Semester button
-    const addSemesterBtn = document.getElementById('add-semester-btn');
-    if (addSemesterBtn) {
-        addSemesterBtn.addEventListener('click', () => {
-            const modal = document.getElementById('add-semester-modal');
-            const instance = M.Modal.getInstance(modal);
-            if (instance) {
-                instance.open();
-            }
-        });
-    }
-
     // Add event listener for the confirm add semester button
     const confirmAddSemesterBtn = document.getElementById('confirm-add-semester');
     if (confirmAddSemesterBtn) {
@@ -162,6 +150,18 @@ async function loadSemesters() {
                 }
             </div>
         `;
+
+        // Add click event listener for the Add Semester button
+        const addSemesterBtn = document.getElementById('add-semester-btn');
+        if (addSemesterBtn) {
+            addSemesterBtn.addEventListener('click', () => {
+                const modal = document.getElementById('add-semester-modal');
+                const instance = M.Modal.getInstance(modal);
+                if (instance) {
+                    instance.open();
+                }
+            });
+        }
 
         // Add click event listeners to semester items
         document.querySelectorAll('.semester-item').forEach(item => {

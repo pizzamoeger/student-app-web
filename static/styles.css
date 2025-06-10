@@ -343,3 +343,25 @@ canvas {
 	100% { transform: rotate(360deg); }
   }
   
+/* Auth visibility rules */
+.logged-in {
+    display: none !important;
+}
+
+.logged-out {
+    display: none !important;
+}
+
+/* These classes will be added by JavaScript when auth state changes */
+.auth-logged-in .logged-in {
+    display: block !important;
+}
+
+.auth-logged-out .logged-out {
+    display: block !important;
+}
+
+/* Special case for nav items that should be inline */
+.auth-logged-in .nav-item.logged-in {
+    display: inline-block !important;
+}  

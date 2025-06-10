@@ -44,15 +44,11 @@ function displayClasses() {
     const classList = getClasses();
     const currentSemester = getCurrentSemester();
     
-    // Get the classes container
-    const classesContainer = document.getElementById('classes-container');
-    if (!classesContainer) return;
-
     // Clear existing content
-    classesContainer.innerHTML = '';
+    container.innerHTML = '';
 
     if (!currentSemester) {
-        classesContainer.innerHTML = '<div class="no-classes">Please select a semester first</div>';
+        container.innerHTML = '<div class="no-classes">Please select a semester first</div>';
         return;
     }
 
@@ -62,28 +58,13 @@ function displayClasses() {
     );
 
     if (semesterClasses.length === 0) {
-        classesContainer.innerHTML = '<div class="no-classes">No classes in this semester yet</div>';
+        container.innerHTML = '<div class="no-classes">No classes in this semester yet</div>';
         return;
     }
 
-    // Create class cards
+    // Display each class
     semesterClasses.forEach(classItem => {
-        const card = document.createElement('div');
-        card.className = 'class-card';
-        card.innerHTML = `
-            <div class="class-card-content">
-                <h5>${classItem.name}</h5>
-                <div class="class-actions">
-                    <button class="btn-small waves-effect waves-light" onclick="editClass(${classItem.id})">
-                        <i class="material-icons">edit</i>
-                    </button>
-                    <button class="btn-small waves-effect waves-light red" onclick="deleteClass(${classItem.id})">
-                        <i class="material-icons">delete</i>
-                    </button>
-                </div>
-            </div>
-        `;
-        classesContainer.appendChild(card);
+        renderClassCard(classItem);
     });
 }
 
@@ -239,7 +220,6 @@ function getRandomColorInt() {
 
 // setup materialize components
 document.addEventListener('DOMContentLoaded', function() {
-
     var modals = document.querySelectorAll('.modal');
     M.Modal.init(modals);
   
@@ -247,8 +227,11 @@ document.addEventListener('DOMContentLoaded', function() {
     M.Collapsible.init(items);
   
     // connect the addClassButton to the action
-    document.getElementById('addClassButton').addEventListener('click', function() {
-        e.preventDefault();
-        addClass()
-    });
+    const addClassButton = document.getElementById('addClassButton');
+    if (addClassButton) {
+        addClassButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            addClass();
+        });
+    }
 });

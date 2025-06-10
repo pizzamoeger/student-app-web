@@ -7,22 +7,14 @@ auth.onAuthStateChanged(async user => {
     console.log("auth state changed", user);
     if (user) { // user is logged in
         setUID(user.uid);
-        document.querySelectorAll('.logged-in').forEach(el => {
-            el.style.display = '';
-        });
-        document.querySelectorAll('.logged-out').forEach(el => {
-            el.style.display = 'none';
-        });
+        document.body.classList.remove('auth-logged-out');
+        document.body.classList.add('auth-logged-in');
         // Initialize global state when user logs in
         await initializeGlobalState();
     } else {
         setUID(null);
-        document.querySelectorAll('.logged-in').forEach(el => {
-            el.style.display = 'none';
-        });
-        document.querySelectorAll('.logged-out').forEach(el => {
-            el.style.display = '';
-        });
+        document.body.classList.remove('auth-logged-in');
+        document.body.classList.add('auth-logged-out');
     }
     renderScreen()
 });
