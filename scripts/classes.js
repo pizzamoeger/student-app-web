@@ -39,29 +39,52 @@ function renderClassCard(clazz) {
     container.appendChild(card);
 }
 
-
-function displayClasses(classes) {
+// Display classes for the current user
+function displayClasses() {
+    const classList = getClasses();
     const currentSemester = getCurrentSemester();
     
+    // Get the classes container
+    const classesContainer = document.getElementById('classes-container');
+    if (!classesContainer) return;
+
+    // Clear existing content
+    classesContainer.innerHTML = '';
+
     if (!currentSemester) {
-        container.innerHTML = '<div class="no-semester-selected">Please select a semester first</div>';
+        classesContainer.innerHTML = '<div class="no-classes">Please select a semester first</div>';
         return;
     }
 
     // Filter classes to only show those in the current semester
-    const semesterClasses = classes.filter(clazz => 
-        currentSemester.classesInSemester.includes(clazz.id)
+    const semesterClasses = classList.filter(classItem => 
+        currentSemester.classesInSemester.includes(classItem.id)
     );
 
     if (semesterClasses.length === 0) {
-        container.innerHTML = '<div class="no-classes">No classes in this semester yet</div>';
+        classesContainer.innerHTML = '<div class="no-classes">No classes in this semester yet</div>';
         return;
     }
 
-    // Display only the classes in the current semester
-    for (const clazz of semesterClasses) {
-        renderClassCard(clazz);
-    }
+    // Create class cards
+    semesterClasses.forEach(classItem => {
+        const card = document.createElement('div');
+        card.className = 'class-card';
+        card.innerHTML = `
+            <div class="class-card-content">
+                <h5>${classItem.name}</h5>
+                <div class="class-actions">
+                    <button class="btn-small waves-effect waves-light" onclick="editClass(${classItem.id})">
+                        <i class="material-icons">edit</i>
+                    </button>
+                    <button class="btn-small waves-effect waves-light red" onclick="deleteClass(${classItem.id})">
+                        <i class="material-icons">delete</i>
+                    </button>
+                </div>
+            </div>
+        `;
+        classesContainer.appendChild(card);
+    });
 }
 
 function enterEditMode(clazz, oldCard) {
@@ -124,7 +147,7 @@ function enterEditMode(clazz, oldCard) {
 
 function renderClasses(callback) {
     container.innerHTML = ""
-    displayClasses(getClasses())
+    displayClasses()
     if (callback) callback()
     hideSavingOverlay();
 }
@@ -147,57 +170,50 @@ function hideSavingOverlay() {
     document.getElementById('saving-overlay').style.display = 'none';
 }
 
-// what to do when add class is pressed
+// Add new class
 async function addClass() {
     try {
-        showSavingOverlay()
-        const classList = getClasses()
-        const currentSemester = getCurrentSemester()
-
-        if (!currentSemester) {
-            hideSavingOverlay()
-            M.toast({html: 'Please select a semester first'});
-            return;
-        }
-
-        // Generate new ID as max existing ID + 1
-        const maxId = classList.reduce((max, clazz) => Math.max(max, clazz.id), 0);
-        const newId = maxId + 1;
-
-        // Generate random class name
-        const randomNum = Math.floor(Math.random() * 1001); // Random number between 0 and 1000
+        showSavingOverlay();
+        
+        // Generate a random number between 100 and 999 for the class name
+        const randomNum = Math.floor(Math.random() * 900) + 100;
         const className = `Class ${randomNum}`;
 
-        const clazz = { // class that should be edited
-            id: newId,
+        const classData = {
+            id: Date.now(), // Use timestamp as unique ID
             name: className,
             color: getRandomColorInt(),
             grades: [],
             studyTime: {}
+        };
+
+        let classList = getClasses();
+        classList.push(classData);
+
+        // Get current semester and add class to it
+        const currentSemester = getCurrentSemester();
+        if (currentSemester) {
+            const semesters = getSemesters();
+            const semesterIndex = semesters.findIndex(s => s.id === currentSemester.id);
+            if (semesterIndex !== -1) {
+                semesters[semesterIndex].classesInSemester.push(classData.id);
+                await updateSemesters(semesters);
+            }
+        } else {
+            hideSavingOverlay();
+            M.toast({html: 'Please select a semester first'});
+            return;
         }
 
-        // Add the new class to the class list
-        let newClassList = []
-        newClassList.push(clazz)
-        for (const cl of classList) {
-            newClassList.push(cl)
-        }
-        await updateClasses(newClassList)
-
-        // Add the class to the current semester
-        const semesters = getSemesters();
-        const semesterIndex = semesters.findIndex(s => s.id === currentSemester.id);
-        if (semesterIndex !== -1) {
-            semesters[semesterIndex].classesInSemester.push(newId);
-            await updateSemesters(semesters);
-        }
-
-        hideSavingOverlay()
+        await updateClasses(classList);
+        hideSavingOverlay();
         M.toast({html: 'New class added successfully!'});
-        renderScreen()
+        
+        // Update only the classes display
+        displayClasses();
     } catch (error) {
         console.error('Error adding class:', error);
-        hideSavingOverlay()
+        hideSavingOverlay();
         M.toast({html: 'Error adding class'});
     }
 }
@@ -221,11 +237,6 @@ function getRandomColorInt() {
     return argb;
 }
 
-function max(a, b) {
-    if (a >= b) return a
-    return b
-}
-
 // setup materialize components
 document.addEventListener('DOMContentLoaded', function() {
 
@@ -239,4 +250,10 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('addClassButton').addEventListener('click', function() {
         addClass()
     });
+});
+
+// Event Listeners
+document.getElementById('add-class-btn').addEventListener('click', (e) => {
+    e.preventDefault();
+    addClass();
 });
