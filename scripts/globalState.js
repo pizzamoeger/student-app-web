@@ -63,11 +63,23 @@ export async function initializeGlobalState() {
         // Parse and set classes
         if (data.classes) {
             try {
-                globalState.classes = JSON.parse(data.classes);
+                console.log('Raw classes data:', data.classes);
+                const parsedClasses = JSON.parse(data.classes);
+                console.log('Parsed classes:', parsedClasses);
+                
+                // Ensure class IDs are consistent by converting them to numbers
+                globalState.classes = parsedClasses.map(cls => ({
+                    ...cls,
+                    id: Number(cls.id)  // Convert all IDs to numbers for consistency
+                }));
+                console.log('Normalized classes:', globalState.classes);
             } catch (err) {
                 console.error("Error parsing classes data:", err);
                 globalState.classes = [];
             }
+        } else {
+            console.log('No classes data found in Firebase');
+            globalState.classes = [];
         }
 
         // Parse and set assignments
@@ -93,7 +105,7 @@ export async function initializeGlobalState() {
         console.error("Error initializing global state:", error);
         globalState.error = error;
         globalState.isLoading = false;
-        throw error; // Re-throw to handle in the calling function
+        throw error;
     }
 }
 
@@ -107,6 +119,7 @@ export function getSemesters() {
 }
 
 export function getClasses() {
+    console.log('Getting classes from global state:', globalState.classes);
     return globalState.classes;
 }
 

@@ -95,27 +95,29 @@
 	<div id="assignment-modal" class="modal">
 		<div class="modal-content">
 			<h4 id="modal-title">Add New Assignment</h4>
-			<form id="assignment-form">
+			<form id="assignment-form" novalidate>
 				<div class="input-field">
-					<input type="text" id="assignment-name" required>
-					<label for="assignment-name">Assignment Name</label>
+					<input type="text" id="assignment-name" name="assignment-name" required>
+					<label for="assignment-name">Assignment Name *</label>
 				</div>
 				<div class="input-field">
-					<select id="assignment-class" required>
+					<select id="assignment-class" name="assignment-class">
+						<option value="">Choose a class</option>
 						<!-- Classes will be populated dynamically -->
 					</select>
 					<label>Class</label>
 				</div>
 				<div class="input-field">
-					<span>Due Date: </span>
-					<input type="date" id="assignment-due-date" required>
+					<span>Due Date: *</span>
+					<input type="date" id="assignment-due-date" name="assignment-due-date" required>
 				</div>
 				<div class="input-field">
-					<textarea id="assignment-description" class="materialize-textarea"></textarea>
+					<textarea id="assignment-description" name="assignment-description" class="materialize-textarea"></textarea>
 					<label for="assignment-description">Description</label>
 				</div>
 				<div class="input-field">
-					<select id="assignment-status" required>
+					<select id="assignment-status" name="assignment-status">
+						<option value="">Choose a status</option>
 						<option value="pending">Pending</option>
 						<option value="in-progress">In Progress</option>
 						<option value="completed">Completed</option>
@@ -123,7 +125,7 @@
 					<label>Status</label>
 				</div>
 				<div class="modal-footer">
-					<button type="button" class="modal-close btn-flat">Cancel</button>
+					<button type="button" class="modal-close btn-flat waves-effect waves-light">Cancel</button>
 					<button type="submit" class="btn waves-effect waves-light">Save</button>
 				</div>
 			</form>
@@ -189,6 +191,9 @@
 		const auth = firebase.auth();
 		const db = firebase.firestore();
 		db.settings({ timestampsInSnapshots: true });
+
+        // Create a global object for our assignment functions
+        window.AssignmentManager = {};
 	</script>
 	
 	<script type="module" src="scripts/auth.js"></script>

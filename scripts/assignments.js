@@ -29,27 +29,87 @@ const statusFilter = document.getElementById('status-filter');
 
 // Initialize the page
 function init() {
+    console.log('Initializing assignments page');
     loadAssignments();
     setupEventListeners();
     initializeMaterialize();
     populateFilters();
+    populateClassSelect();
     renderAssignments();
+    console.log('Initialization complete');
 }
 
 // Initialize Materialize components
 function initializeMaterialize() {
+    console.log('Initializing Materialize components');
+    
     // Initialize select dropdowns
     const selects = document.querySelectorAll('select');
-    M.FormSelect.init(selects);
+    selects.forEach(select => {
+        // Remove any existing initialization
+        if (select.M_FormSelect) {
+            select.M_FormSelect.destroy();
+        }
+        // Remove tabindex
+        select.removeAttribute('tabindex');
+        // Initialize with proper options
+        M.FormSelect.init(select, {
+            dropdownOptions: {
+                container: document.body
+            }
+        });
+    });
 
-    // Initialize modal
-    M.Modal.init(document.querySelectorAll('.modal'));
+    // Initialize modal with proper options
+    const modalElement = document.getElementById('assignment-modal');
+    if (modalElement.M_Modal) {
+        modalElement.M_Modal.destroy();
+    }
+    M.Modal.init(modalElement, {
+        dismissible: true,
+        onOpenStart: () => {
+            // Reset validation state and repopulate classes
+            const selects = modalElement.querySelectorAll('select');
+            selects.forEach(select => {
+                select.classList.remove('invalid');
+                select.classList.remove('valid');
+                select.removeAttribute('tabindex');
+            });
+            populateClassSelect();  // Repopulate classes when modal opens
+        },
+        onCloseEnd: () => {
+            // Reset form and editing state when modal is closed
+            assignmentForm.reset();
+            currentlyEditingId = null;
+            M.updateTextFields();
+            
+            // Reset select validation
+            const selects = modalElement.querySelectorAll('select');
+            selects.forEach(select => {
+                select.classList.remove('invalid');
+                select.classList.remove('valid');
+                select.removeAttribute('tabindex');
+            });
+        }
+    });
+    
+    // Initialize textareas
+    const textareas = document.querySelectorAll('.materialize-textarea');
+    textareas.forEach(textarea => {
+        if (textarea.M_TextareaMaterial) {
+            textarea.M_TextareaMaterial.destroy();
+        }
+        M.textareaAutoResize(textarea);
+    });
+    
+    console.log('Materialize components initialized');
 }
 
 // Load assignments from Firebase
 function loadAssignments() {
     // Assignments are already loaded in global state during initialization
     const assignments = getAssignments();
+    console.log('Loaded assignments:', assignments);  // Debug log
     if (!assignments) {
         console.error('No assignments found');
         return;
@@ -69,11 +129,91 @@ function setupEventListeners() {
         assignmentForm.reset();
         const modal = M.Modal.getInstance(assignmentModal);
         modal.open();
-        populateClassSelect();
+        // populateClassSelect will be called by modal onOpenStart
     });
 
     // Form submission
-    assignmentForm.addEventListener('submit', handleFormSubmit);
+    console.log('Setting up form submission listener');
+    assignmentForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        console.log('Form submitted');
+
+        // Custom validation
+        const name = document.getElementById('assignment-name').value.trim();
+        const dueDate = document.getElementById('assignment-due-date').value;
+        const classId = document.getElementById('assignment-class').value;
+
+        // Validate required fields
+        if (!name || !dueDate) {
+            console.log('Validation failed:', { name, dueDate });
+            M.toast({html: 'Please fill in the assignment name and due date'});
+            return;
+        }
+        
+        console.log('Selected class ID:', classId);
+        const classes = getClasses();
+        const selectedClass = classes.find(c => Number(c.id) === Number(classId));
+        console.log('Found class:', selectedClass);
+        
+        try {
+            const assignmentData = {
+                name: name,
+                classId: classId ? Number(classId) : null,  // Convert to number if present
+                dueDate: dueDate,
+                description: document.getElementById('assignment-description').value.trim(),
+                status: document.getElementById('assignment-status').value || 'pending'
+            };
+            console.log('Form data:', assignmentData);
+
+            const assignments = getAssignments();
+            console.log('Current assignments:', assignments);
+            console.log('Currently editing ID:', currentlyEditingId);
+
+            if (currentlyEditingId) {
+                // Update existing assignment
+                const index = assignments.findIndex(a => Number(a.id) === Number(currentlyEditingId));
+                console.log('Found assignment at index:', index);
+                
+                if (index !== -1) {
+                    assignments[index] = {
+                        ...assignments[index],
+                        ...assignmentData,
+                        id: Number(assignments[index].id)  // Ensure ID remains a number
+                    };
+                    await updateAssignments(assignments);
+                    M.toast({html: 'Assignment updated successfully'});
+                } else {
+                    console.error('Could not find assignment to update');
+                    M.toast({html: 'Error updating assignment'});
+                    return;
+                }
+            } else {
+                // Add new assignment
+                const newAssignment = {
+                    ...assignmentData,
+                    id: Date.now(),  // This will be a number
+                    createdAt: Date.now()
+                };
+                assignments.push(newAssignment);
+                await updateAssignments(assignments);
+                M.toast({html: 'Assignment added successfully'});
+            }
+
+            renderAssignments();
+
+            // Close modal
+            const modal = M.Modal.getInstance(assignmentModal);
+            modal.close();
+            
+            // Reset the form and currentlyEditingId
+            assignmentForm.reset();
+            currentlyEditingId = null;
+            
+        } catch (error) {
+            console.error('Error saving assignment:', error);
+            M.toast({html: 'Error saving assignment'});
+        }
+    });
     
     // Filter event listeners
     semesterFilter.addEventListener('change', () => {
@@ -82,6 +222,20 @@ function setupEventListeners() {
     });
     classFilter.addEventListener('change', renderAssignments);
     statusFilter.addEventListener('change', renderAssignments);
+
+    // Add click event delegation for edit and delete buttons
+    assignmentsList.addEventListener('click', (e) => {
+        const editBtn = e.target.closest('.edit-btn');
+        const deleteBtn = e.target.closest('.delete-btn');
+        
+        if (editBtn) {
+            const id = editBtn.dataset.id;
+            editAssignment(id);
+        } else if (deleteBtn) {
+            const id = deleteBtn.dataset.id;
+            deleteAssignment(id);
+        }
+    });
 }
 
 // Populate filter dropdowns
@@ -131,10 +285,23 @@ function updateClassFilter() {
 function populateClassSelect() {
     const classSelect = document.getElementById('assignment-class');
     const classes = getClasses();
-    classSelect.innerHTML = '<option value="">Select a Class</option>';
-    classes.forEach(cls => {
-        classSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
-    });
+    console.log('Available classes:', classes);
+    
+    // Clear existing options
+    classSelect.innerHTML = '<option value="">Choose a class</option>';
+    
+    // Add class options
+    if (classes && classes.length > 0) {
+        classes.forEach(cls => {
+            console.log('Adding class option:', cls);
+            classSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
+        });
+    } else {
+        console.log('No classes found');
+        classSelect.innerHTML += '<option value="" disabled>No classes available</option>';
+    }
+    
+    // Reinitialize select
     M.FormSelect.init(classSelect);
 }
 
@@ -153,15 +320,17 @@ export function renderAssignments() {
     const selectedStatus = statusFilter.value;
     
     let filteredAssignments = getAssignments() || [];
+    const classes = getClasses();
+    console.log('Rendering assignments with classes:', classes);
 
     // Apply filters
     if (selectedClass !== 'all') {
-        filteredAssignments = filteredAssignments.filter(a => a.classId === selectedClass);
+        filteredAssignments = filteredAssignments.filter(a => Number(a.classId) === Number(selectedClass));
     } else if (selectedSemester !== 'all') {
         const semester = getSemesters().find(sem => sem.id === selectedSemester);
         if (semester) {
             filteredAssignments = filteredAssignments.filter(a => {
-                const assignmentClass = getClasses().find(c => c.id === a.classId);
+                const assignmentClass = classes.find(c => Number(c.id) === Number(a.classId));
                 return assignmentClass && semester.classesInSemester.includes(assignmentClass.id);
             });
         }
@@ -187,7 +356,10 @@ export function renderAssignments() {
     assignmentsList.innerHTML = filteredAssignments.map(assignment => {
         if (!assignment) return '';
         
-        const assignmentClass = getClasses().find(c => c.id === assignment.classId);
+        // Find the class for this assignment
+        const assignmentClass = classes.find(c => Number(c.id) === Number(assignment.classId));
+        console.log('Found class for assignment:', assignment.name, assignmentClass);
+        
         const dueDate = assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date';
         const status = assignment.status || 'pending';
         const classColor = assignmentClass ? intToRGBHex(assignmentClass.color) : '#cccccc';
@@ -212,10 +384,10 @@ export function renderAssignments() {
                     ` : ''}
                 </div>
                 <div class="assignment-actions">
-                    <button class="edit-btn" onclick="editAssignment('${assignment.id}')">
+                    <button class="edit-btn" data-id="${assignment.id}">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="delete-btn" onclick="deleteAssignment('${assignment.id}')">
+                    <button class="delete-btn" data-id="${assignment.id}">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -225,28 +397,51 @@ export function renderAssignments() {
 }
 
 // Edit assignment
-async function editAssignment(id) {
+function editAssignment(id) {
+    console.log('Editing assignment:', id);
     const assignments = getAssignments();
-    const assignment = assignments.find(a => a.id === id);
-    if (!assignment) return;
+    console.log('All assignments:', assignments);
+    
+    // Convert id to both formats for comparison
+    const numId = parseInt(id);
+    const strId = id.toString();
+    
+    // Try to find assignment with either format
+    const assignment = assignments.find(a => a.id === strId || a.id === numId);
+    
+    if (!assignment) {
+        console.error('Assignment not found:', id);
+        return;
+    }
 
-    currentlyEditingId = id;
+    currentlyEditingId = assignment.id;
     document.getElementById('modal-title').textContent = 'Edit Assignment';
     
     // Populate form fields
-    document.getElementById('assignment-name').value = assignment.name;
-    document.getElementById('assignment-class').value = assignment.classId;
+    document.getElementById('assignment-name').value = assignment.name || assignment.title;
+    
+    // Handle class select - make sure to populate classes first
+    populateClassSelect();
+    const classSelect = document.getElementById('assignment-class');
+    if (assignment.classId) {
+        classSelect.value = assignment.classId;
+        M.FormSelect.init(classSelect);
+    }
+    
+    // Set other fields
     document.getElementById('assignment-due-date').value = assignment.dueDate;
     document.getElementById('assignment-description').value = assignment.description || '';
-    document.getElementById('assignment-status').value = assignment.status;
+    
+    // Handle status select
+    const statusSelect = document.getElementById('assignment-status');
+    statusSelect.value = assignment.status || (assignment.completed ? 'completed' : 'pending');
+    M.FormSelect.init(statusSelect);
 
-    // Update Materialize form fields
+    // Update all Materialize form fields
     M.updateTextFields();
-    M.FormSelect.init(document.getElementById('assignment-class'));
-    M.FormSelect.init(document.getElementById('assignment-status'));
 
     // Open modal
-    const modal = M.Modal.getInstance(assignmentModal);
+    const modal = M.Modal.getInstance(document.getElementById('assignment-modal'));
     modal.open();
 }
 
@@ -260,54 +455,6 @@ async function deleteAssignment(id) {
         M.toast({html: 'Assignment deleted successfully'});
     }
 }
-
-// Handle form submission
-async function handleFormSubmit(e) {
-    e.preventDefault();
-
-    const assignmentData = {
-        name: document.getElementById('assignment-name').value,
-        classId: document.getElementById('assignment-class').value,
-        dueDate: document.getElementById('assignment-due-date').value,
-        description: document.getElementById('assignment-description').value,
-        status: document.getElementById('assignment-status').value
-    };
-
-    const assignments = getAssignments();
-
-    if (currentlyEditingId) {
-        // Update existing assignment
-        const index = assignments.findIndex(a => a.id === currentlyEditingId);
-        if (index !== -1) {
-            assignments[index] = {
-                ...assignments[index],
-                ...assignmentData
-            };
-            await updateAssignments(assignments);
-            M.toast({html: 'Assignment updated successfully'});
-        }
-    } else {
-        // Add new assignment
-        const newAssignment = {
-            ...assignmentData,
-            id: Date.now().toString(),
-            createdAt: Date.now()
-        };
-        assignments.push(newAssignment);
-        await updateAssignments(assignments);
-        M.toast({html: 'Assignment added successfully'});
-    }
-
-    renderAssignments();
-
-    // Close modal
-    const modal = M.Modal.getInstance(assignmentModal);
-    modal.close();
-}
-
-// Make functions available globally for onclick handlers
-window.editAssignment = editAssignment;
-window.deleteAssignment = deleteAssignment;
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', init); 
