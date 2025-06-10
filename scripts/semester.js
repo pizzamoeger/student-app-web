@@ -1,4 +1,4 @@
-import { data } from './classes.js';
+import { getData, uid } from './auth.js';
 
 // DOM Elements
 const semesterList = document.getElementById('semester-list');
@@ -17,47 +17,34 @@ function formatDate(dateString) {
 }
 
 async function loadAllSemesters() {
-    data = 
-    if (!data) return []
-
-
-    const semesterString = data.semester; // get the classes field
-    if (!semesterString) return []
     try {
-        // try parsing it
-        const semesterList = JSON.parse(semesterString);
-        if (!Array.isArray(semesterList)) {
-            throw new Error("Parsed classes is not an array");
+        const data = await getData();
+        console.log("Received data:", data);
+
+        const semesterString = data.semester; // get the semester field
+        if (!semesterString) {
+            console.log("No semester data found");
+            return [];
         }
-        return semesterList;
-    } catch (err) {
-        console.error("Error parsing 'classes':", err);
-        throw err;
+
+        try {
+            // try parsing it
+            const semesterList = JSON.parse(semesterString);
+            if (!Array.isArray(semesterList)) {
+                console.error("Parsed semester data is not an array");
+                return [];
+            }
+            console.log("Parsed semester list:", semesterList);
+            return semesterList;
+        } catch (err) {
+            console.error("Error parsing semester data:", err);
+            return [];
+        }
+    } catch (error) {
+        console.error("Error loading semesters:", error);
+        return [];
     }
 }
-
-// Load all semesters from the database
-/*async function loadAllSemesters() {
-    try {
-        console.log('Loading all semesters from database');
-        const semestersRef = db.collection('semesters');
-        const snapshot = await semestersRef.get();
-        
-        if (snapshot.empty) {
-            console.log('No semesters found in database');
-            return;
-        }
-
-        console.log('Found', snapshot.size, 'semesters in database');
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error('Error loading all semesters:', error);
-        throw error;
-    }
-}*/
 
 // Load semesters for the current user
 async function loadSemesters() {
@@ -86,7 +73,7 @@ async function loadSemesters() {
             
             allSemesters.forEach(semester => {
                 console.log('Loading semester:', semester);
-                const progress = calculateProgress(semester.startDate, semester.endDate);
+                // const progress = calculateProgress(semester.startDate, semester.endDate);
                 
                 const item = document.createElement('div');
                 item.className = 'semester-item';
@@ -96,9 +83,6 @@ async function loadSemesters() {
                     <div class="semester-item-name">${semester.name}</div>
                     <div class="semester-item-dates">
                         ${formatDate(semester.startDate)} - ${formatDate(semester.endDate)}
-                    </div>
-                    <div class="semester-progress">
-                        <div class="progress-bar" style="width: ${progress}%"></div>
                     </div>
                 `;
                 
@@ -111,28 +95,56 @@ async function loadSemesters() {
     }
 }
 
+export async function saveNewSemesterList(newSemesterList) {
+    const semesterString = JSON.stringify(newSemesterList)
+    const data = getData()
+    data.semester = semesterString;
+    console.log(semesterString)
+    await saveNewSemesterListToDB(semesterString)
+}
+
+async function saveNewSemesterListToDB(semesterString) {
+    const docRef = db.collection("user").doc(uid);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+        console.log("No such document exists. Creating it...");
+        await docRef.set({
+            semester: semesterString,
+        });
+    } else {
+        console.log("Document exists. Updating it...");
+        await docRef.update({
+            semester: semesterString,
+        });
+    }
+}
+
 // Add new semester
 async function addNewSemester(name, startDate, endDate) {
     try {
-        const user = auth.currentUser;
-        if (!user) {
-            console.error('No user logged in');
-            return;
-        }
-
         console.log('Adding new semester:', { name, startDate, endDate });
-        const semestersRef = db.collection('semesters');
         
-        const semesterData = {
+        /*const semesterData = {
             name,
             startDate,
-            endDate,
-            createdAt: new Date(),
-            updatedAt: new Date()
-        };
+            endDate
+        };*/
 
-        console.log('Saving new semester data:', semesterData);
-        await semestersRef.add(semesterData);
+        const semesterData = { // class that should be edited
+            id: 5,
+            name: name,
+            end: endDate,
+            start: startDate,
+            classesInSemester: []        
+        }
+
+        let semesterList = await loadAllSemesters();
+        (semesterList).push(semesterData);
+
+
+        console.log('Saving new semester data:', semesterList);
+        await saveNewSemesterList(semesterList);
 
         M.toast({html: 'New semester added successfully!'});
         loadSemesters(); // Reload the semester list

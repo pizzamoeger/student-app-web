@@ -76,3 +76,19 @@ function showSavingOverlay() {
 function hideSavingOverlay() {
     document.getElementById('saving-overlay').style.display = 'none';
 }
+
+export async function getData() {
+    try {
+        const doc = await db.collection("user").doc(uid).get();
+        if (doc.exists) {
+            console.log("Document data:", doc.data());
+            return doc.data();
+        } else {
+            console.log("No such document for this user.");
+            return {"classes":"[]", "semester":"[]"};
+        }
+    } catch (error) {
+        console.error("Error getting document:", error);
+        throw error;
+    }
+}

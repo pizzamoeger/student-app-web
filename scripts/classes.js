@@ -7,23 +7,15 @@ let currentlyEditingCard = null
 // executed as soon as window is loaded
 export function renderScreen() { // TODO export temporary
     const currentPage = window.location.pathname;
+    data = getData()
     if (currentPage === "/index.html") {
-        data = null
 
         if (!uid) { // user is not logged in
             renderClasses()
             return
         }
     
-        db.collection("user").doc(uid).get().then(doc => {
-            if (doc.exists) {
-                data = doc.data()
-            } else {
-                console.log("No such document for this user.");
-                data = {"classes":"[]"}
-            }
-            renderClasses()
-        });
+        renderClasses()
     } else {
         data = null
 
@@ -32,14 +24,7 @@ export function renderScreen() { // TODO export temporary
             return
         }
     
-        db.collection("user").doc(uid).get().then(doc => {
-            if (doc.exists) {
-                data = doc.data()
-            } else {
-                console.log("No such document for this user.");
-            }
-            renderClassesStopwatch()
-        });
+        renderClassesStopwatch()
     }
 };
 
