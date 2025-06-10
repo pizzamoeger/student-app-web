@@ -336,7 +336,16 @@ export function renderAssignments() {
         }
     }
 
-    if (selectedStatus !== 'all') {
+    // Check for overdue assignments and apply status filter
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Set to start of day for fair comparison
+
+    if (selectedStatus === 'overdue') {
+        filteredAssignments = filteredAssignments.filter(a => {
+            const dueDate = new Date(a.dueDate);
+            return dueDate < now && a.status !== 'completed';
+        });
+    } else if (selectedStatus !== 'all') {
         filteredAssignments = filteredAssignments.filter(a => a.status === selectedStatus);
     }
 
@@ -358,21 +367,22 @@ export function renderAssignments() {
         
         // Find the class for this assignment
         const assignmentClass = classes.find(c => Number(c.id) === Number(assignment.classId));
-        console.log('Found class for assignment:', assignment.name, assignmentClass);
         
-        const dueDate = assignment.dueDate ? new Date(assignment.dueDate).toLocaleDateString() : 'No due date';
-        const status = assignment.status || 'pending';
+        const dueDate = new Date(assignment.dueDate);
+        const isOverdue = dueDate < now && assignment.status !== 'completed';
+        const dueDateStr = dueDate.toLocaleDateString();
+        const status = isOverdue ? 'overdue' : (assignment.status || 'pending');
         const classColor = assignmentClass ? intToRGBHex(assignmentClass.color) : '#cccccc';
         
         return `
-            <div class="assignment-card" style="border-left: 4px solid ${classColor}">
+            <div class="assignment-card ${isOverdue ? 'assignment-overdue' : ''}" style="border-left: 4px solid ${classColor}">
                 <div class="assignment-info">
                     <div class="assignment-title">${assignment.name || 'Untitled Assignment'}</div>
                     <div class="assignment-details">
                         <span class="assignment-class">
                             ${assignmentClass ? assignmentClass.name : 'Unknown Class'}
                         </span>
-                        <span class="assignment-due-date">Due: ${dueDate}</span>
+                        <span class="assignment-due-date">Due: ${dueDateStr}</span>
                         <span class="assignment-status status-${status}">
                             ${status.charAt(0).toUpperCase() + status.slice(1)}
                         </span>

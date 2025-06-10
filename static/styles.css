@@ -473,106 +473,84 @@ canvas {
 
 .assignment-card {
     background: white;
-    border: 1px solid #e0e0e0;
-    border-left-width: 4px;
-    border-radius: 8px;
+    padding: 15px;
     margin-bottom: 15px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     display: flex;
-    transition: all 0.2s ease;
-    overflow: hidden;
-}
-
-.assignment-card:hover {
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    transform: translateY(-1px);
+    justify-content: space-between;
+    align-items: flex-start;
 }
 
 .assignment-info {
     flex-grow: 1;
-    padding: 20px;
 }
 
 .assignment-title {
-    font-size: 1.1em;
+    font-size: 1.2em;
     font-weight: 500;
-    color: #333;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
 }
 
 .assignment-details {
-    color: #666;
-    font-size: 0.9em;
     display: flex;
-    align-items: center;
     gap: 15px;
-}
-
-.assignment-class {
-    font-weight: 500;
-}
-
-.assignment-status {
-    padding: 6px 12px;
-    border-radius: 15px;
-    font-size: 0.85em;
-    font-weight: 500;
-    margin: 0 15px;
-}
-
-.status-pending {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-.status-in-progress {
-    background-color: #cce5ff;
-    color: #004085;
-}
-
-.status-completed {
-    background-color: #d4edda;
-    color: #155724;
+    font-size: 0.9em;
+    color: #666;
+    margin-bottom: 8px;
 }
 
 .assignment-description {
-    margin-top: 10px;
-    color: #666;
     font-size: 0.9em;
-    line-height: 1.4;
+    color: #666;
+    margin-top: 8px;
 }
 
 .assignment-actions {
     display: flex;
-    gap: 10px;
-    padding: 20px;
-    align-items: flex-start;
+    gap: 8px;
 }
 
 .assignment-actions button {
     background: none;
     border: none;
-    padding: 8px;
-    border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s;
-    margin: 0;
-    height: auto;
+    color: #666;
+    padding: 4px;
 }
 
 .assignment-actions button:hover {
-    background-color: #f5f5f5;
+    color: #000;
 }
 
-.assignment-actions button i {
-    font-size: 1.2em;
+.status-pending {
+    color: #ff9800;
 }
 
-.assignment-actions .edit-btn i {
-    color: #2196F3;
+.status-in-progress {
+    color: #2196f3;
 }
 
-.assignment-actions .delete-btn i {
-    color: #dc3545;
+.status-completed {
+    color: #4caf50;
+}
+
+.status-overdue {
+    color: #f44336;
+    font-weight: bold;
+}
+
+.assignment-overdue {
+    background-color: #fff8f8;
+}
+
+.assignment-overdue .assignment-title {
+    color: #f44336;
+}
+
+.assignment-overdue .assignment-due-date {
+    color: #f44336;
+    font-weight: bold;
 }
 
 /* Modal Styles */
