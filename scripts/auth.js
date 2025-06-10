@@ -4,6 +4,7 @@ import { initializeGlobalState, setUID } from './globalState.js';
 // get data from db
 // listen for auth status changes
 auth.onAuthStateChanged(async user => {
+    console.log("auth state changed", user);
     if (user) { // user is logged in
         setUID(user.uid);
         document.querySelectorAll('.logged-in').forEach(el => {

@@ -248,12 +248,7 @@ document.addEventListener('DOMContentLoaded', function() {
   
     // connect the addClassButton to the action
     document.getElementById('addClassButton').addEventListener('click', function() {
+        e.preventDefault();
         addClass()
     });
-});
-
-// Event Listeners
-document.getElementById('add-class-btn').addEventListener('click', (e) => {
-    e.preventDefault();
-    addClass();
 });
