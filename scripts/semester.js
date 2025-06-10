@@ -1,4 +1,4 @@
-import { getSemesters, updateSemesters, initializeGlobalState } from './globalState.js';
+import { getSemesters, updateSemesters, initializeGlobalState, setCurrentSemester, getCurrentSemester } from './globalState.js';
 
 // DOM Elements
 const semesterList = document.getElementById('semester-list');
@@ -20,6 +20,7 @@ function formatDate(dateString) {
 async function loadSemesters() {
     try {
         const allSemesters = getSemesters();
+        const currentSemester = getCurrentSemester();
         console.log(allSemesters)
         
         // Clear existing list
@@ -27,6 +28,7 @@ async function loadSemesters() {
         
         if (!allSemesters || allSemesters.length === 0) {
             console.log('No semesters found');
+            semesterList.innerHTML = '<div class="no-semesters">No semesters found</div>';
         } else {
             console.log('Found', allSemesters.length, 'semesters');
             
@@ -40,12 +42,33 @@ async function loadSemesters() {
                 item.className = 'semester-item';
                 item.dataset.id = semester.id;
                 
+                // Add active class if this is the current semester
+                if (currentSemester && currentSemester.id === semester.id) {
+                    item.classList.add('active');
+                }
+                
                 item.innerHTML = `
-                    <div class="semester-item-name">${semester.name}</div>
+                    <div class="semester-item-name">
+                        ${semester.name}
+                        ${currentSemester && currentSemester.id === semester.id ? 
+                            '<span class="current-semester-badge">Current</span>' : ''}
+                    </div>
                     <div class="semester-item-dates">
                         ${formatDate(semester.start)} - ${formatDate(semester.end)}
                     </div>
                 `;
+                
+                // Add click handler for semester selection
+                item.addEventListener('click', () => {
+                    // Remove active class from all items
+                    document.querySelectorAll('.semester-item').forEach(el => {
+                        el.classList.remove('active');
+                    });
+                    // Add active class to clicked item
+                    item.classList.add('active');
+                    // Display semester details
+                    displaySemesterDetails(semester);
+                });
                 
                 semesterList.appendChild(item);
             });
@@ -53,6 +76,77 @@ async function loadSemesters() {
     } catch (error) {
         console.error('Error loading semesters:', error);
         M.toast({html: 'Error loading semesters'});
+    }
+}
+
+// Display semester details
+function displaySemesterDetails(semester) {
+    const detailsContainer = document.getElementById('semester-details');
+    const currentSemester = getCurrentSemester();
+    const isCurrentSemester = currentSemester && currentSemester.id === semester.id;
+    
+    // Calculate semester duration
+    const startDate = new Date(semester.start);
+    const endDate = new Date(semester.end);
+    const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)); // Duration in days
+    
+    // Calculate progress
+    const today = new Date();
+    const totalDuration = endDate - startDate;
+    const elapsed = today - startDate;
+    const progress = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
+    
+    const currentSemesterBadge = isCurrentSemester ? 
+        '<span class="current-semester-badge">Current Semester</span>' :
+        '<button class="btn waves-effect waves-light set-current-btn" id="set-current-btn">' +
+        '<i class="material-icons left">star</i>Set as Current Semester</button>';
+    
+    detailsContainer.innerHTML = `
+        <div class="semester-details-content">
+            <div class="semester-header">
+                <h4>${semester.name}</h4>
+                ${currentSemesterBadge}
+            </div>
+            <div class="semester-info">
+                <div class="info-item">
+                    <i class="material-icons">event</i>
+                    <span>Start Date: ${formatDate(semester.start)}</span>
+                </div>
+                <div class="info-item">
+                    <i class="material-icons">event</i>
+                    <span>End Date: ${formatDate(semester.end)}</span>
+                </div>
+                <div class="info-item">
+                    <i class="material-icons">schedule</i>
+                    <span>Duration: ${duration} days</span>
+                </div>
+            </div>
+            <div class="semester-progress">
+                <div class="progress-label">Semester Progress</div>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: ${progress}%"></div>
+                </div>
+                <div class="progress-percentage">${Math.round(progress)}%</div>
+            </div>
+            <div class="semester-classes">
+                <h5>Classes in this Semester</h5>
+                <div class="classes-list">
+                    ${semester.classesInSemester.length > 0 
+                        ? semester.classesInSemester.map(classId => `<div class="class-item">Class ID: ${classId}</div>`).join('')
+                        : '<div class="no-classes">No classes added to this semester yet</div>'}
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add event listener for the "Set as Current" button if it exists
+    const setCurrentBtn = document.getElementById('set-current-btn');
+    if (setCurrentBtn) {
+        setCurrentBtn.addEventListener('click', () => {
+            setCurrentSemester(semester);
+            M.toast({html: `${semester.name} set as current semester`});
+            loadSemesters(); // Reload the list to update the current semester indicator
+        });
     }
 }
 

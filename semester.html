@@ -24,34 +24,69 @@
 			margin-bottom: 30px;
 		}
 
+		.dashboard-content {
+			display: flex;
+			gap: 20px;
+		}
+
 		.semester-list {
 			background: white;
 			border-radius: 10px;
 			padding: 20px;
 			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-			max-width: 600px;
-			margin: 0 auto;
+			width: 300px;
+			max-height: calc(100vh - 150px);
+			overflow-y: auto;
+		}
+
+		.semester-details {
+			flex: 1;
+			background: white;
+			border-radius: 10px;
+			padding: 20px;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 		}
 
 		.semester-item {
-			padding: 20px;
+			padding: 15px;
 			border-radius: 8px;
-			margin-bottom: 15px;
+			margin-bottom: 10px;
 			background: #f8f9fa;
 			border-left: 4px solid #2196F3;
+			cursor: pointer;
+			transition: all 0.3s ease;
+		}
+
+		.semester-item:hover {
+			background: #e3f2fd;
+			transform: translateX(5px);
+		}
+
+		.semester-item.active {
+			background: #e3f2fd;
+			border-left: 4px solid #1976D2;
 		}
 
 		.semester-item-name {
-			font-size: 1.2em;
+			font-size: 1.1em;
 			font-weight: 500;
 			color: #333;
-			margin-bottom: 8px;
+			margin-bottom: 5px;
+			display: flex;
+			align-items: center;
 		}
 
 		.semester-item-dates {
 			font-size: 0.9em;
 			color: #666;
-			margin-bottom: 12px;
+		}
+
+		.no-semester-selected {
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			height: 100%;
+			color: #666;
 		}
 
 		.semester-progress {
@@ -94,6 +129,117 @@
 
 		.input-field {
 			margin: 0;
+		}
+
+		.semester-details-content {
+			padding: 20px;
+		}
+
+		.semester-info {
+			margin: 20px 0;
+		}
+
+		.info-item {
+			display: flex;
+			align-items: center;
+			margin-bottom: 15px;
+			color: #666;
+		}
+
+		.info-item i {
+			margin-right: 10px;
+			color: #2196F3;
+		}
+
+		.semester-progress {
+			margin: 30px 0;
+		}
+
+		.progress-label {
+			margin-bottom: 10px;
+			color: #333;
+			font-weight: 500;
+		}
+
+		.progress-bar-container {
+			height: 8px;
+			background: #e0e0e0;
+			border-radius: 4px;
+			overflow: hidden;
+			margin-bottom: 5px;
+		}
+
+		.progress-bar {
+			height: 100%;
+			background: #2196F3;
+			transition: width 0.3s ease;
+		}
+
+		.progress-percentage {
+			text-align: right;
+			color: #666;
+			font-size: 0.9em;
+		}
+
+		.semester-classes {
+			margin-top: 30px;
+		}
+
+		.classes-list {
+			margin-top: 15px;
+		}
+
+		.class-item {
+			padding: 10px;
+			background: #f8f9fa;
+			border-radius: 4px;
+			margin-bottom: 8px;
+		}
+
+		.no-classes {
+			color: #666;
+			font-style: italic;
+		}
+
+		.no-semesters {
+			color: #666;
+			text-align: center;
+			padding: 20px;
+		}
+
+		.current-semester-badge {
+			background: #4CAF50;
+			color: white;
+			padding: 4px 12px;
+			border-radius: 16px;
+			font-size: 0.9em;
+			display: inline-flex;
+			align-items: center;
+			gap: 4px;
+		}
+
+		.current-semester-badge::before {
+			content: '★';
+			font-size: 1.1em;
+		}
+
+		.semester-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 20px;
+		}
+
+		.semester-header h4 {
+			margin: 0;
+		}
+
+		.set-current-btn {
+			background-color: #2196F3;
+		}
+
+		.set-current-btn:hover {
+			background-color: #1976D2;
 		}
 	</style>
 </head>
@@ -143,8 +289,15 @@
 				</button>
 			</div>
 
-			<div class="semester-list" id="semester-list">
-				<!-- Semester list items will be added here -->
+			<div class="dashboard-content">
+				<div class="semester-list" id="semester-list">
+					<!-- Semester list items will be added here -->
+				</div>
+				<div class="semester-details" id="semester-details">
+					<div class="no-semester-selected">
+						<h5>Select a semester to view details</h5>
+					</div>
+				</div>
 			</div>
 		</div>
 	</div>
