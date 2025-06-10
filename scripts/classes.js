@@ -1,5 +1,5 @@
 import { renderClassesStopwatch } from './stopwatch.js';
-import { updateClasses, getClasses } from './globalState.js'
+import { updateClasses, getClasses, getCurrentSemester, getSemesters, updateSemesters } from './globalState.js'
 
 const container = document.getElementById("classes-div")
 let currentlyEditingCard = null
@@ -41,9 +41,26 @@ function renderClassCard(clazz) {
 
 
 function displayClasses(classes) {
-    for (const clazz of classes) {
-        // for each class create a div according to the template
-        renderClassCard(clazz)
+    const currentSemester = getCurrentSemester();
+    
+    if (!currentSemester) {
+        container.innerHTML = '<div class="no-semester-selected">Please select a semester first</div>';
+        return;
+    }
+
+    // Filter classes to only show those in the current semester
+    const semesterClasses = classes.filter(clazz => 
+        currentSemester.classesInSemester.includes(clazz.id)
+    );
+
+    if (semesterClasses.length === 0) {
+        container.innerHTML = '<div class="no-classes">No classes in this semester yet</div>';
+        return;
+    }
+
+    // Display only the classes in the current semester
+    for (const clazz of semesterClasses) {
+        renderClassCard(clazz);
     }
 }
 
@@ -132,33 +149,61 @@ function hideSavingOverlay() {
 
 // what to do when add class is pressed
 async function addClass() {
-    showSavingOverlay()
-    const classList = getClasses()
+    try {
+        showSavingOverlay()
+        const classList = getClasses()
+        const currentSemester = getCurrentSemester()
 
-    // id -1 means create a new class
-    let id = -1 // get the id of the new class
-    for (let clazz of classList) {
-        id = max(id, clazz.id)
+        if (!currentSemester) {
+            hideSavingOverlay()
+            M.toast({html: 'Please select a semester first'});
+            return;
+        }
+
+        // id -1 means create a new class
+        let id = -1 // get the id of the new class
+        for (let clazz of classList) {
+            id = max(id, clazz.id)
+        }
+        if (id == -1) id = 0
+        id++
+
+        // Generate random class name
+        const randomNum = Math.floor(Math.random() * 1001); // Random number between 0 and 1000
+        const className = `Class ${randomNum}`;
+
+        const clazz = { // class that should be edited
+            id: id,
+            name: className,
+            color: getRandomColorInt(),
+            grades: [],
+            studyTime: {}
+        }
+
+        // Add the new class to the class list
+        let newClassList = []
+        newClassList.push(clazz)
+        for (const cl of classList) {
+            newClassList.push(cl)
+        }
+        await updateClasses(newClassList)
+
+        // Add the class to the current semester
+        const semesters = getSemesters();
+        const semesterIndex = semesters.findIndex(s => s.id === currentSemester.id);
+        if (semesterIndex !== -1) {
+            semesters[semesterIndex].classesInSemester.push(id);
+            await updateSemesters(semesters);
+        }
+
+        hideSavingOverlay()
+        M.toast({html: 'New class added successfully!'});
+        renderScreen()
+    } catch (error) {
+        console.error('Error adding class:', error);
+        hideSavingOverlay()
+        M.toast({html: 'Error adding class'});
     }
-    if (id == -1) id = 0
-    id++
-
-    const clazz = { // class that should be edited
-        id: id,
-        name: "New Class",
-        color: getRandomColorInt(),
-        grades: [],
-        studyTime: {}
-    }
-
-    let newClassList = []
-    newClassList.push(clazz)
-    for (const cl of classList) {
-        newClassList.push(cl)
-    }
-
-    await updateClasses(newClassList)
-    renderScreen()
 }
 
 async function deleteClass(id) {

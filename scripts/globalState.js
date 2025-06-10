@@ -58,6 +58,14 @@ export async function initializeGlobalState() {
             }
         }
 
+        // Set current semester if it exists in the data
+        if (data.currentSemesterId) {
+            const currentSemester = globalState.semesters.find(s => s.id === data.currentSemesterId);
+            if (currentSemester) {
+                globalState.currentSemester = currentSemester;
+            }
+        }
+
         globalState.isLoading = false;
     } catch (error) {
         console.error("Error initializing global state:", error);
@@ -90,6 +98,25 @@ export function getUserData() {
 // Setters
 export function setCurrentSemester(semester) {
     globalState.currentSemester = semester;
+    // Update current semester ID in database
+    saveCurrentSemesterIdToDB(semester.id);
+}
+
+async function saveCurrentSemesterIdToDB(semesterId) {
+    const docRef = db.collection("user").doc(globalState.uid);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+        console.log("No such document exists. Creating it...");
+        await docRef.set({
+            currentSemesterId: semesterId,
+        });
+    } else {
+        console.log("Document exists. Updating it...");
+        await docRef.update({
+            currentSemesterId: semesterId,
+        });
+    }
 }
 
 export async function updateSemesters(newSemesters) {
