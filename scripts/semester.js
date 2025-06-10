@@ -1,4 +1,4 @@
-import { getSemesters, updateSemesters } from './globalState.js';
+import { getSemesters, updateSemesters, initializeGlobalState } from './globalState.js';
 
 // DOM Elements
 const semesterList = document.getElementById('semester-list');
@@ -20,6 +20,7 @@ function formatDate(dateString) {
 async function loadSemesters() {
     try {
         const allSemesters = getSemesters();
+        console.log(allSemesters)
         
         // Clear existing list
         semesterList.innerHTML = '';
@@ -98,9 +99,11 @@ addSemesterForm.addEventListener('submit', (e) => {
 });
 
 // Initialize
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
     if (user) {
         console.log('User logged in:', user.uid);
+        // Wait for global state to be initialized
+        await initializeGlobalState();
         loadSemesters();
     } else {
         console.log('No user logged in');
