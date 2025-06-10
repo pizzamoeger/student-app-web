@@ -1,4 +1,4 @@
-import { updateClasses, getClasses } from './globalState.js';
+import { updateClasses, getClasses, getCurrentSemester } from './globalState.js';
 
 const container = document.getElementById("classes-div")
 
@@ -187,9 +187,26 @@ function getSecondsMonth(clazz) {
 
 
 function displayClasses(classes) {
-    for (const clazz of classes) {
-        // for each class create a div according to the template
-        renderClassCard(clazz)
+    const currentSemester = getCurrentSemester();
+    
+    if (!currentSemester) {
+        container.innerHTML = '<div class="no-semester-selected">Please select a semester first</div>';
+        return;
+    }
+
+    // Filter classes to only show those in the current semester
+    const semesterClasses = classes.filter(clazz => 
+        currentSemester.classesInSemester.includes(clazz.id)
+    );
+
+    if (semesterClasses.length === 0) {
+        container.innerHTML = '<div class="no-classes">No classes in this semester yet</div>';
+        return;
+    }
+
+    // Display only the classes in the current semester
+    for (const clazz of semesterClasses) {
+        renderClassCard(clazz);
     }
 }
 
@@ -198,21 +215,33 @@ let weekChart = null;
 let monthChart = null;
 export function renderClassesStopwatch(callback) {
     container.innerHTML = "";
-    const classes = getClasses()
-    displayClasses(classes)
+    const classes = getClasses();
+    const currentSemester = getCurrentSemester();
+    
+    if (!currentSemester) {
+        container.innerHTML = '<div class="no-semester-selected">Please select a semester first</div>';
+        return;
+    }
 
-    if (classes.length === 0) return
+    // Filter classes to only show those in the current semester
+    const semesterClasses = classes.filter(clazz => 
+        currentSemester.classesInSemester.includes(clazz.id)
+    );
+
+    displayClasses(semesterClasses);
+
+    if (semesterClasses.length === 0) return;
 
     // Calculate total time per class
-    const pieDataDay = classes.map(clazz => {
+    const pieDataDay = semesterClasses.map(clazz => {
         return { name: clazz.name, time: clazz.studyTime[getDate(new Date())], color : clazz.color };
     }).filter(entry => entry.time > 0);
 
-    const pieDataWeek = classes.map(clazz => {
+    const pieDataWeek = semesterClasses.map(clazz => {
         return { name: clazz.name, time: getSecondsWeek(clazz), color : clazz.color };
     }).filter(entry => entry.time > 0);
 
-    const pieDataMonth = classes.map(clazz => {
+    const pieDataMonth = semesterClasses.map(clazz => {
         return { name: clazz.name, time: getSecondsMonth(clazz), color : clazz.color };
     }).filter(entry => entry.time > 0);             
 

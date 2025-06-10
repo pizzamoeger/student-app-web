@@ -27,52 +27,74 @@ async function loadSemesters() {
         semesterList.innerHTML = '';
         
         if (!allSemesters || allSemesters.length === 0) {
-            console.log('No semesters found');
-            semesterList.innerHTML = '<div class="no-semesters">No semesters found</div>';
-        } else {
-            console.log('Found', allSemesters.length, 'semesters');
+            console.log('No semesters found, creating default semester');
             
-            // Sort semesters by start date
-            allSemesters.sort((a, b) => new Date(a.start) - new Date(b.start));
+            // Create default semester
+            const today = new Date();
+            const endDate = new Date();
+            endDate.setMonth(today.getMonth() + 6); // 6 months from now
             
-            allSemesters.forEach(semester => {
-                console.log('Loading semester:', semester);
-                
-                const item = document.createElement('div');
-                item.className = 'semester-item';
-                item.dataset.id = semester.id;
-                
-                // Add active class if this is the current semester
-                if (currentSemester && currentSemester.id === semester.id) {
-                    item.classList.add('active');
-                }
-                
-                item.innerHTML = `
-                    <div class="semester-item-name">
-                        ${semester.name}
-                        ${currentSemester && currentSemester.id === semester.id ? 
-                            '<span class="current-semester-badge">Current</span>' : ''}
-                    </div>
-                    <div class="semester-item-dates">
-                        ${formatDate(semester.start)} - ${formatDate(semester.end)}
-                    </div>
-                `;
-                
-                // Add click handler for semester selection
-                item.addEventListener('click', () => {
-                    // Remove active class from all items
-                    document.querySelectorAll('.semester-item').forEach(el => {
-                        el.classList.remove('active');
-                    });
-                    // Add active class to clicked item
-                    item.classList.add('active');
-                    // Display semester details
-                    displaySemesterDetails(semester);
-                });
-                
-                semesterList.appendChild(item);
-            });
+            const defaultSemester = {
+                id: 1, // First semester gets ID 1
+                name: "Default Semester",
+                start: today.toISOString().split('T')[0],
+                end: endDate.toISOString().split('T')[0],
+                classesInSemester: []
+            };
+
+            // Add the default semester
+            await updateSemesters([defaultSemester]);
+            
+            // Set it as current semester
+            setCurrentSemester(defaultSemester);
+            
+            // Reload the list with the new semester
+            await loadSemesters();
+            return;
         }
+        
+        console.log('Found', allSemesters.length, 'semesters');
+        
+        // Sort semesters by start date
+        allSemesters.sort((a, b) => new Date(a.start) - new Date(b.start));
+        
+        allSemesters.forEach(semester => {
+            console.log('Loading semester:', semester);
+            
+            const item = document.createElement('div');
+            item.className = 'semester-item';
+            item.dataset.id = semester.id;
+            
+            // Add active class if this is the current semester
+            if (currentSemester && currentSemester.id === semester.id) {
+                item.classList.add('active');
+            }
+            
+            item.innerHTML = `
+                <div class="semester-item-name">
+                    ${semester.name}
+                    ${currentSemester && currentSemester.id === semester.id ? 
+                        '<span class="current-semester-badge">Current</span>' : ''}
+                </div>
+                <div class="semester-item-dates">
+                    ${formatDate(semester.start)} - ${formatDate(semester.end)}
+                </div>
+            `;
+            
+            // Add click handler for semester selection
+            item.addEventListener('click', () => {
+                // Remove active class from all items
+                document.querySelectorAll('.semester-item').forEach(el => {
+                    el.classList.remove('active');
+                });
+                // Add active class to clicked item
+                item.classList.add('active');
+                // Display semester details
+                displaySemesterDetails(semester);
+            });
+            
+            semesterList.appendChild(item);
+        });
     } catch (error) {
         console.error('Error loading semesters:', error);
         M.toast({html: 'Error loading semesters'});
