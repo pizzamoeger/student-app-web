@@ -230,7 +230,17 @@ export function renderClassesStopwatch(callback) {
 
     displayClasses(semesterClasses);
 
-    if (semesterClasses.length === 0) return;
+    const noClassesMessage = document.getElementById('no-classes-message');
+    const chartsContainer = document.getElementById('charts-container');
+
+    if (semesterClasses.length === 0) {
+        if (noClassesMessage) noClassesMessage.style.display = 'block';
+        if (chartsContainer) chartsContainer.style.display = 'none';
+        return;
+    } else {
+        if (noClassesMessage) noClassesMessage.style.display = 'none';
+        if (chartsContainer) chartsContainer.style.display = 'block';
+    }
 
     // Calculate total time per class
     const pieDataDay = semesterClasses.map(clazz => {
@@ -245,9 +255,42 @@ export function renderClassesStopwatch(callback) {
         return { name: clazz.name, time: getSecondsMonth(clazz), color : clazz.color };
     }).filter(entry => entry.time > 0);             
 
-    dayChart = drawPieChart(pieDataDay, 'dayPieChart', dayChart);
-    weekChart = drawPieChart(pieDataWeek, 'weekPieChart', weekChart);
-    monthChart = drawPieChart(pieDataMonth, 'monthPieChart', monthChart);
+    // Handle day chart
+    const dayChartCanvas = document.getElementById('dayPieChart');
+    const noDayData = document.getElementById('no-data-day');
+    if (pieDataDay.length === 0) {
+        if (dayChartCanvas) dayChartCanvas.style.display = 'none';
+        if (noDayData) noDayData.style.display = 'block';
+    } else {
+        if (dayChartCanvas) dayChartCanvas.style.display = 'block';
+        if (noDayData) noDayData.style.display = 'none';
+        dayChart = drawPieChart(pieDataDay, 'dayPieChart', dayChart);
+    }
+
+    // Handle week chart
+    const weekChartCanvas = document.getElementById('weekPieChart');
+    const noWeekData = document.getElementById('no-data-week');
+    if (pieDataWeek.length === 0) {
+        if (weekChartCanvas) weekChartCanvas.style.display = 'none';
+        if (noWeekData) noWeekData.style.display = 'block';
+    } else {
+        if (weekChartCanvas) weekChartCanvas.style.display = 'block';
+        if (noWeekData) noWeekData.style.display = 'none';
+        weekChart = drawPieChart(pieDataWeek, 'weekPieChart', weekChart);
+    }
+
+    // Handle month chart
+    const monthChartCanvas = document.getElementById('monthPieChart');
+    const noMonthData = document.getElementById('no-data-month');
+    if (pieDataMonth.length === 0) {
+        if (monthChartCanvas) monthChartCanvas.style.display = 'none';
+        if (noMonthData) noMonthData.style.display = 'block';
+    } else {
+        if (monthChartCanvas) monthChartCanvas.style.display = 'block';
+        if (noMonthData) noMonthData.style.display = 'none';
+        monthChart = drawPieChart(pieDataMonth, 'monthPieChart', monthChart);
+    }
+
     if (callback) callback();
 }
 

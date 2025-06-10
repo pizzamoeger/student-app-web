@@ -62,20 +62,37 @@
 			<!-- RIGHT SIDE -->
 			<div class="right-panel">
 				<h2>Insights</h2>
-				<div class="chart-row">
-					<div class="chart-container">
-					  <h3>Today</h3>
-					  <canvas id="dayPieChart" width="200" height="200"></canvas>
+				<div id="insights-container">
+					<div id="no-classes-message" style="display: none; text-align: center; padding: 40px;">
+						<h4>No Classes in This Semester</h4>
+						<p>Add some classes to your semester to start tracking study time!</p>
 					</div>
-					<div class="chart-container">
-					  <h3>This Week</h3>
-					  <canvas id="weekPieChart" width="200" height="200"></canvas>
+					<div id="charts-container">
+						<div class="chart-row">
+							<div class="chart-container">
+								<h3>Today</h3>
+								<div class="no-data-message" id="no-data-day" style="display: none; text-align: center; padding: 20px;">
+									<p>No study time recorded today.<br>Start studying to see today's distribution!</p>
+								</div>
+								<canvas id="dayPieChart" width="200" height="200"></canvas>
+							</div>
+							<div class="chart-container">
+								<h3>This Week</h3>
+								<div class="no-data-message" id="no-data-week" style="display: none; text-align: center; padding: 20px;">
+									<p>No study time recorded this week.<br>Keep studying to see your weekly progress!</p>
+								</div>
+								<canvas id="weekPieChart" width="200" height="200"></canvas>
+							</div>
+							<div class="chart-container">
+								<h3>This Month</h3>
+								<div class="no-data-message" id="no-data-month" style="display: none; text-align: center; padding: 20px;">
+									<p>No study time recorded this month.<br>Study consistently to track your monthly distribution!</p>
+								</div>
+								<canvas id="monthPieChart" width="200" height="200"></canvas>
+							</div>
+						</div>
 					</div>
-					<div class="chart-container">
-					  <h3>This Month</h3>
-					  <canvas id="monthPieChart" width="200" height="200"></canvas>
-					</div>
-				  </div>			  
+				</div>
 			</div>
 		</div>
 	</div>
