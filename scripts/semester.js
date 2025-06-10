@@ -118,18 +118,20 @@ async function loadSemesters() {
             
             item.innerHTML = `
                 <div class="semester-item-content">
-                    <div class="semester-item-name">
-                        ${semester.name}
+                    <div class="semester-item-header">
+                        <div class="semester-item-name">${semester.name}</div>
                         ${currentSemester && currentSemester.id === semester.id ? 
                             '<span class="current-semester-badge">Current</span>' : ''}
                     </div>
-                    <div class="semester-item-dates">
-                        ${formatDate(semester.start)} - ${formatDate(semester.end)}
+                    <div class="semester-item-footer">
+                        <div class="semester-item-dates">
+                            ${formatDate(semester.start)} - ${formatDate(semester.end)}
+                        </div>
+                        <button class="btn-flat delete-semester-btn" data-id="${semester.id}">
+                            <i class="material-icons">delete</i>
+                        </button>
                     </div>
                 </div>
-                <button class="btn-flat delete-semester-btn" data-id="${semester.id}">
-                    <i class="material-icons">delete</i>
-                </button>
             `;
             
             // Add click handler for semester selection
