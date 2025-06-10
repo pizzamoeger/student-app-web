@@ -155,8 +155,13 @@ async function addNewSemester(name, startDate, endDate) {
     try {
         console.log('Adding new semester:', { name, startDate, endDate });
 
+        // Get existing semesters and find max ID
+        const existingSemesters = getSemesters();
+        const maxId = existingSemesters.reduce((max, semester) => Math.max(max, semester.id), 0);
+        const newId = maxId + 1;
+
         const semesterData = {
-            id: Date.now(), // Use timestamp as unique ID
+            id: newId,
             name: name,
             end: endDate,
             start: startDate,

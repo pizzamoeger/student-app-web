@@ -160,20 +160,16 @@ async function addClass() {
             return;
         }
 
-        // id -1 means create a new class
-        let id = -1 // get the id of the new class
-        for (let clazz of classList) {
-            id = max(id, clazz.id)
-        }
-        if (id == -1) id = 0
-        id++
+        // Generate new ID as max existing ID + 1
+        const maxId = classList.reduce((max, clazz) => Math.max(max, clazz.id), 0);
+        const newId = maxId + 1;
 
         // Generate random class name
         const randomNum = Math.floor(Math.random() * 1001); // Random number between 0 and 1000
         const className = `Class ${randomNum}`;
 
         const clazz = { // class that should be edited
-            id: id,
+            id: newId,
             name: className,
             color: getRandomColorInt(),
             grades: [],
@@ -192,7 +188,7 @@ async function addClass() {
         const semesters = getSemesters();
         const semesterIndex = semesters.findIndex(s => s.id === currentSemester.id);
         if (semesterIndex !== -1) {
-            semesters[semesterIndex].classesInSemester.push(id);
+            semesters[semesterIndex].classesInSemester.push(newId);
             await updateSemesters(semesters);
         }
 
