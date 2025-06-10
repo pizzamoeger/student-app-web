@@ -1,4 +1,4 @@
-import { getSemesters, updateSemesters, initializeGlobalState, setCurrentSemester, getCurrentSemester } from './globalState.js';
+import { getSemesters, updateSemesters, initializeGlobalState, setCurrentSemester, getCurrentSemester, getClasses } from './globalState.js';
 
 // DOM Elements
 const semesterList = document.getElementById('semester-list');
@@ -123,6 +123,13 @@ function displaySemesterDetails(semester) {
         '<button class="btn waves-effect waves-light set-current-btn" id="set-current-btn">' +
         '<i class="material-icons left">star</i>Set as Current Semester</button>';
     
+    // Get all classes and filter for classes in this semester
+    const allClasses = getClasses();
+    const semesterClasses = semester.classesInSemester.map(classId => {
+        const classData = allClasses.find(c => c.id === classId);
+        return classData ? classData.name : `Unknown Class (ID: ${classId})`;
+    });
+    
     detailsContainer.innerHTML = `
         <div class="semester-details-content">
             <div class="semester-header">
@@ -153,8 +160,8 @@ function displaySemesterDetails(semester) {
             <div class="semester-classes">
                 <h5>Classes in this Semester</h5>
                 <div class="classes-list">
-                    ${semester.classesInSemester.length > 0 
-                        ? semester.classesInSemester.map(classId => `<div class="class-item">Class ID: ${classId}</div>`).join('')
+                    ${semesterClasses.length > 0 
+                        ? semesterClasses.map(className => `<div class="class-item">${className}</div>`).join('')
                         : '<div class="no-classes">No classes added to this semester yet</div>'}
                 </div>
             </div>
