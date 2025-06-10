@@ -8,6 +8,61 @@ const addSemesterForm = document.getElementById('add-semester-form');
 document.addEventListener('DOMContentLoaded', function() {
     const modals = document.querySelectorAll('.modal');
     M.Modal.init(modals);
+
+    // Initialize the add semester modal
+    const addSemesterModal = document.getElementById('add-semester-modal');
+    if (addSemesterModal) {
+        const modalInstance = M.Modal.init(addSemesterModal, {
+            onOpenStart: () => {
+                const today = new Date();
+                const sixMonthsFromNow = new Date();
+                sixMonthsFromNow.setMonth(today.getMonth() + 6);
+
+                // Format dates as YYYY-MM-DD
+                const formatDate = (date) => {
+                    return date.toISOString().split('T')[0];
+                };
+
+                document.getElementById('start-date').value = formatDate(today);
+                document.getElementById('end-date').value = formatDate(sixMonthsFromNow);
+            }
+        });
+    }
+
+    // Add click event listener for the Add Semester button
+    const addSemesterBtn = document.getElementById('add-semester-btn');
+    if (addSemesterBtn) {
+        addSemesterBtn.addEventListener('click', () => {
+            const modal = document.getElementById('add-semester-modal');
+            const instance = M.Modal.getInstance(modal);
+            if (instance) {
+                instance.open();
+            }
+        });
+    }
+
+    // Add event listener for the confirm add semester button
+    const confirmAddSemesterBtn = document.getElementById('confirm-add-semester');
+    if (confirmAddSemesterBtn) {
+        confirmAddSemesterBtn.addEventListener('click', () => {
+            const name = document.getElementById('semester-name').value;
+            const startDate = document.getElementById('start-date').value;
+            const endDate = document.getElementById('end-date').value;
+
+            if (name && startDate && endDate) {
+                addNewSemester(name, startDate, endDate);
+                const modal = M.Modal.getInstance(addSemesterModal);
+                modal.close();
+                // Reset form
+                document.getElementById('add-semester-form').reset();
+            } else {
+                M.toast({html: 'Please fill in all fields'});
+            }
+        });
+    }
+
+    // Load semesters
+    loadSemesters();
 });
 
 // Format date for display
@@ -54,122 +109,189 @@ async function deleteSemester(semesterId) {
 // Load semesters for the current user
 async function loadSemesters() {
     try {
-        console.log('Starting to load semesters...');
-        const allSemesters = getSemesters();
-        console.log('Retrieved semesters:', allSemesters);
+        const semesters = getSemesters();
+        const semesterList = document.getElementById('semester-list');
         const currentSemester = getCurrentSemester();
-        console.log('Current semester:', currentSemester);
         
-        // Clear existing list
-        semesterList.innerHTML = '';
-        
-        if (!allSemesters || allSemesters.length === 0) {
-            console.log('No semesters found, creating default semester');
-            
-            // Create default semester
-            const today = new Date();
-            const endDate = new Date();
-            endDate.setMonth(today.getMonth() + 6); // 6 months from now
-            
-            const defaultSemester = {
-                id: 1, // First semester gets ID 1
-                name: "Default Semester",
-                start: today.toISOString().split('T')[0],
-                end: endDate.toISOString().split('T')[0],
-                classesInSemester: []
-            };
+        // Sort semesters by start date (newest first)
+        const sortedSemesters = semesters ? [...semesters].sort((a, b) => 
+            new Date(b.start) - new Date(a.start)
+        ) : [];
 
-            console.log('Created default semester:', defaultSemester);
+        semesterList.innerHTML = `
+            <button class="btn waves-effect waves-light add-semester-btn" id="add-semester-btn">
+                <i class="material-icons left">add</i>Add Semester
+            </button>
+            <div class="semester-list-content">
+                ${!sortedSemesters || sortedSemesters.length === 0 ? 
+                    '<div class="no-semesters">No semesters found. Add your first semester!</div>' :
+                    sortedSemesters.map(semester => {
+                        const isCurrentSemester = currentSemester && currentSemester.id === semester.id;
+                        const startDate = new Date(semester.start);
+                        const endDate = new Date(semester.end);
+                        const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)); // Duration in days
+                        
+                        return `
+                            <div class="semester-item ${isCurrentSemester ? 'current' : ''}" data-id="${semester.id}">
+                                <div class="semester-item-content">
+                                    <div class="semester-item-main">
+                                        <h5>${semester.name}</h5>
+                                        <div class="semester-dates">
+                                            ${startDate.toLocaleDateString()} - ${endDate.toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="semester-item-footer">
+                                    <div class="semester-stats">
+                                        <div class="stat-item">
+                                            <i class="material-icons">schedule</i>
+                                            <span>${duration} days</span>
+                                        </div>
+                                        <div class="stat-item">
+                                            <i class="material-icons">class</i>
+                                            <span>${semester.classesInSemester.length} classes</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn-flat delete-semester-btn" data-id="${semester.id}">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')
+                }
+            </div>
+        `;
 
-            try {
-                // Add the default semester
-                await updateSemesters([defaultSemester]);
-                console.log('Successfully saved default semester');
-                
-                // Set it as current semester
-                setCurrentSemester(defaultSemester);
-                console.log('Set default semester as current');
-                
-                // Reload the list with the new semester
-                await loadSemesters();
-                return;
-            } catch (error) {
-                console.error('Error in default semester creation:', error);
-                throw error;
-            }
-        }
-        
-        console.log('Found', allSemesters.length, 'semesters');
-        
-        // Sort semesters by start date
-        allSemesters.sort((a, b) => new Date(a.start) - new Date(b.start));
-        
-        allSemesters.forEach(semester => {
-            console.log('Processing semester:', semester);
-            
-            const item = document.createElement('div');
-            item.className = 'semester-item';
-            item.dataset.id = semester.id;
-            
-            // Add active class if this is the current semester
-            if (currentSemester && currentSemester.id === semester.id) {
-                item.classList.add('active');
-            }
-            
-            item.innerHTML = `
-                <div class="semester-item-content">
-                    <div class="semester-item-header">
-                        <div class="semester-item-name">${semester.name}</div>
-                        ${currentSemester && currentSemester.id === semester.id ? 
-                            '<span class="current-semester-badge">Current</span>' : ''}
-                    </div>
-                    <div class="semester-item-footer">
-                        <div class="semester-item-dates">
-                            ${formatDate(semester.start)} - ${formatDate(semester.end)}
-                        </div>
-                        <button class="btn-flat delete-semester-btn" data-id="${semester.id}">
-                            <i class="material-icons">delete</i>
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            // Add click handler for semester selection
+        // Add click event listeners to semester items
+        document.querySelectorAll('.semester-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                // Don't trigger if clicking the delete button
-                if (e.target.closest('.delete-semester-btn')) {
+                // Don't trigger if clicking on a button or its children
+                if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) {
                     return;
                 }
-                
-                // Remove active class from all items
-                document.querySelectorAll('.semester-item').forEach(el => {
-                    el.classList.remove('active');
-                });
-                // Add active class to clicked item
-                item.classList.add('active');
-                // Display semester details
-                displaySemesterDetails(semester);
-            });
-            
-            // Add click handler for delete button
-            const deleteBtn = item.querySelector('.delete-semester-btn');
-            deleteBtn.addEventListener('click', (e) => {
-                e.stopPropagation(); // Prevent triggering the item click
-                if (confirm('Are you sure you want to delete this semester?')) {
-                    deleteSemester(semester.id);
+                const semesterId = parseInt(item.dataset.id);
+                const semester = sortedSemesters.find(s => s.id === semesterId);
+                if (semester) {
+                    displaySemesterDetails(semester);
                 }
             });
-            
-            semesterList.appendChild(item);
         });
+
+        // Add click event listeners to delete buttons
+        document.querySelectorAll('.delete-semester-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the semester item click
+                const semesterId = parseInt(btn.dataset.id);
+                if (confirm('Are you sure you want to delete this semester?')) {
+                    deleteSemester(semesterId);
+                }
+            });
+        });
+
     } catch (error) {
         console.error('Error loading semesters:', error);
-        console.error('Error details:', {
-            message: error.message,
-            stack: error.stack,
-            name: error.name
-        });
-        M.toast({html: 'Error loading semesters: ' + error.message});
+        M.toast({html: 'Error loading semesters'});
+    }
+}
+
+// Update semester details
+async function updateSemesterDetails(semesterId, updates) {
+    try {
+        const allSemesters = getSemesters();
+        const semesterIndex = allSemesters.findIndex(s => s.id === semesterId);
+        
+        if (semesterIndex === -1) {
+            throw new Error('Semester not found');
+        }
+
+        // Update the semester
+        allSemesters[semesterIndex] = {
+            ...allSemesters[semesterIndex],
+            ...updates
+        };
+
+        // Save changes
+        await updateSemesters(allSemesters);
+        
+        // If this is the current semester, update it
+        const currentSemester = getCurrentSemester();
+        if (currentSemester && currentSemester.id === semesterId) {
+            setCurrentSemester(allSemesters[semesterIndex]);
+        }
+
+        M.toast({html: 'Semester updated successfully'});
+        loadSemesters(); // Reload the list
+    } catch (error) {
+        console.error('Error updating semester:', error);
+        M.toast({html: 'Error updating semester'});
+    }
+}
+
+// Add class to semester
+async function addClassToSemester(semesterId, classId) {
+    try {
+        const allSemesters = getSemesters();
+        const semesterIndex = allSemesters.findIndex(s => s.id === semesterId);
+        
+        if (semesterIndex === -1) {
+            throw new Error('Semester not found');
+        }
+
+        // Check if class is already in the semester
+        if (allSemesters[semesterIndex].classesInSemester.includes(classId)) {
+            M.toast({html: 'Class is already in this semester'});
+            return;
+        }
+
+        // Add class to semester
+        allSemesters[semesterIndex].classesInSemester.push(classId);
+
+        // Save changes
+        await updateSemesters(allSemesters);
+        
+        // If this is the current semester, update it
+        const currentSemester = getCurrentSemester();
+        if (currentSemester && currentSemester.id === semesterId) {
+            setCurrentSemester(allSemesters[semesterIndex]);
+        }
+
+        M.toast({html: 'Class added to semester'});
+        displaySemesterDetails(allSemesters[semesterIndex]); // Refresh the details view
+    } catch (error) {
+        console.error('Error adding class to semester:', error);
+        M.toast({html: 'Error adding class to semester'});
+    }
+}
+
+// Remove class from semester
+async function removeClassFromSemester(semesterId, classId) {
+    try {
+        const allSemesters = getSemesters();
+        const semesterIndex = allSemesters.findIndex(s => s.id === semesterId);
+        
+        if (semesterIndex === -1) {
+            throw new Error('Semester not found');
+        }
+
+        // Remove class from semester
+        allSemesters[semesterIndex].classesInSemester = 
+            allSemesters[semesterIndex].classesInSemester.filter(id => id !== classId);
+
+        // Save changes
+        await updateSemesters(allSemesters);
+        
+        // If this is the current semester, update it
+        const currentSemester = getCurrentSemester();
+        if (currentSemester && currentSemester.id === semesterId) {
+            setCurrentSemester(allSemesters[semesterIndex]);
+        }
+
+        M.toast({html: 'Class removed from semester'});
+        displaySemesterDetails(allSemesters[semesterIndex]); // Refresh the details view
+    } catch (error) {
+        console.error('Error removing class from semester:', error);
+        M.toast({html: 'Error removing class from semester'});
     }
 }
 
@@ -178,6 +300,17 @@ function displaySemesterDetails(semester) {
     const detailsContainer = document.getElementById('semester-details');
     const currentSemester = getCurrentSemester();
     const isCurrentSemester = currentSemester && currentSemester.id === semester.id;
+    
+    // Remove selected class from all semester items
+    document.querySelectorAll('.semester-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Add selected class to the current semester item
+    const selectedItem = document.querySelector(`.semester-item[data-id="${semester.id}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
     
     // Calculate semester duration
     const startDate = new Date(semester.start);
@@ -199,23 +332,35 @@ function displaySemesterDetails(semester) {
     const allClasses = getClasses();
     const semesterClasses = semester.classesInSemester.map(classId => {
         const classData = allClasses.find(c => c.id === classId);
-        return classData ? classData.name : `Unknown Class (ID: ${classId})`;
-    });
+        return classData ? classData : null;
+    }).filter(Boolean);
+
+    // Get classes not in this semester
+    const availableClasses = allClasses.filter(c => !semester.classesInSemester.includes(c.id));
     
     detailsContainer.innerHTML = `
         <div class="semester-details-content">
             <div class="semester-header">
-                <h4>${semester.name}</h4>
+                <div class="editable-name">
+                    <h4 id="semester-name" contenteditable="true">${semester.name}</h4>
+                    <i class="material-icons edit-icon">edit</i>
+                </div>
                 ${currentSemesterBadge}
             </div>
             <div class="semester-info">
                 <div class="info-item">
                     <i class="material-icons">event</i>
-                    <span>Start Date: ${formatDate(semester.start)}</span>
+                    <div class="editable-date">
+                        <span>Start Date: </span>
+                        <input type="date" id="semester-start-date" value="${semester.start}" class="date-input">
+                    </div>
                 </div>
                 <div class="info-item">
                     <i class="material-icons">event</i>
-                    <span>End Date: ${formatDate(semester.end)}</span>
+                    <div class="editable-date">
+                        <span>End Date: </span>
+                        <input type="date" id="semester-end-date" value="${semester.end}" class="date-input">
+                    </div>
                 </div>
                 <div class="info-item">
                     <i class="material-icons">schedule</i>
@@ -230,15 +375,81 @@ function displaySemesterDetails(semester) {
                 <div class="progress-percentage">${Math.round(progress)}%</div>
             </div>
             <div class="semester-classes">
-                <h5>Classes in this Semester</h5>
+                <div class="classes-header">
+                    <h5>Classes in this Semester</h5>
+                    <div class="class-selector">
+                        <select id="class-select" class="browser-default">
+                            <option value="" disabled selected>Add a class</option>
+                            ${availableClasses.map(c => 
+                                `<option value="${c.id}">${c.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
                 <div class="classes-list">
                     ${semesterClasses.length > 0 
-                        ? semesterClasses.map(className => `<div class="class-item">${className}</div>`).join('')
+                        ? semesterClasses.map(c => `
+                            <div class="class-item">
+                                <span>${c.name}</span>
+                                <button class="btn-flat remove-class-btn" data-id="${c.id}">
+                                    <i class="material-icons">close</i>
+                                </button>
+                            </div>
+                        `).join('')
                         : '<div class="no-classes">No classes added to this semester yet</div>'}
                 </div>
             </div>
         </div>
     `;
+
+    // Add event listeners for editing
+    const nameElement = document.getElementById('semester-name');
+    const startDateInput = document.getElementById('semester-start-date');
+    const endDateInput = document.getElementById('semester-end-date');
+    const classSelect = document.getElementById('class-select');
+
+    // Handle name editing
+    nameElement.addEventListener('blur', () => {
+        const newName = nameElement.textContent.trim();
+        if (newName && newName !== semester.name) {
+            updateSemesterDetails(semester.id, { name: newName });
+        }
+    });
+
+    // Handle date editing
+    startDateInput.addEventListener('change', () => {
+        const newStartDate = startDateInput.value;
+        if (newStartDate && newStartDate !== semester.start) {
+            updateSemesterDetails(semester.id, { start: newStartDate });
+        }
+    });
+
+    endDateInput.addEventListener('change', () => {
+        const newEndDate = endDateInput.value;
+        if (newEndDate && newEndDate !== semester.end) {
+            updateSemesterDetails(semester.id, { end: newEndDate });
+        }
+    });
+
+    // Handle class selection
+    classSelect.addEventListener('change', () => {
+        const selectedClassId = parseInt(classSelect.value);
+        if (selectedClassId) {
+            addClassToSemester(semester.id, selectedClassId);
+            classSelect.value = ''; // Reset selection
+        }
+    });
+
+    // Handle class removal
+    document.querySelectorAll('.remove-class-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const classId = parseInt(btn.dataset.id);
+            if (confirm('Are you sure you want to remove this class from the semester?')) {
+                removeClassFromSemester(semester.id, classId);
+            }
+        });
+    });
 
     // Add event listener for the "Set as Current" button if it exists
     const setCurrentBtn = document.getElementById('set-current-btn');
@@ -251,16 +462,14 @@ function displaySemesterDetails(semester) {
     }
 }
 
-// Add new semester
+// Add a new semester
 async function addNewSemester(name, startDate, endDate) {
     try {
-        console.log('Adding new semester:', { name, startDate, endDate });
-
         // Set default dates if not provided
         const today = new Date();
         const sixMonthsFromNow = new Date();
         sixMonthsFromNow.setMonth(today.getMonth() + 6);
-
+        
         const defaultStartDate = startDate || today.toISOString().split('T')[0];
         const defaultEndDate = endDate || sixMonthsFromNow.toISOString().split('T')[0];
 
@@ -274,37 +483,26 @@ async function addNewSemester(name, startDate, endDate) {
             name: name,
             start: defaultStartDate,
             end: defaultEndDate,
-            classesInSemester: []        
+            classesInSemester: []
         };
 
         let semesterList = getSemesters();
-        semesterList.push(semesterData);
+        // Add new semester at the beginning of the list
+        semesterList = [semesterData, ...semesterList];
 
-        console.log('Saving new semester data:', semesterList);
         await updateSemesters(semesterList);
-
+        
+        // Set it as current semester
+        setCurrentSemester(semesterData);
+        
         M.toast({html: 'New semester added successfully!'});
         loadSemesters(); // Reload the semester list
+        displaySemesterDetails(semesterData); // Show the new semester details
     } catch (error) {
         console.error('Error adding semester:', error);
         M.toast({html: 'Error adding semester'});
     }
 }
-
-// Event Listeners
-addSemesterForm.addEventListener('submit', (e) => {
-    e.preventDefault();
-    const name = document.getElementById('new-semester-name').value;
-    const startDate = document.getElementById('new-start-date').value;
-    const endDate = document.getElementById('new-end-date').value;
-    
-    addNewSemester(name, startDate, endDate);
-    
-    // Reset form and close modal
-    addSemesterForm.reset();
-    const modal = M.Modal.getInstance(document.getElementById('modal-add-semester'));
-    modal.close();
-});
 
 // Initialize
 auth.onAuthStateChanged(async user => {
