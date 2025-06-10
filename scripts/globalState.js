@@ -35,6 +35,16 @@ async function getData() {
 export async function initializeGlobalState() {
     try {
         globalState.isLoading = true;
+        
+        // Get the current user
+        const user = auth.currentUser;
+        if (!user || !user.uid) {
+            throw new Error('No user logged in');
+        }
+        
+        // Set the user ID
+        globalState.uid = user.uid;
+        
         const data = await getData();
         globalState.userData = data;
         
@@ -71,6 +81,7 @@ export async function initializeGlobalState() {
         console.error("Error initializing global state:", error);
         globalState.error = error;
         globalState.isLoading = false;
+        throw error; // Re-throw to handle in the calling function
     }
 }
 

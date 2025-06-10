@@ -16,12 +16,49 @@ function formatDate(dateString) {
     return new Date(dateString).toLocaleDateString(undefined, options);
 }
 
+// Delete semester
+async function deleteSemester(semesterId) {
+    try {
+        const allSemesters = getSemesters();
+        const semesterToDelete = allSemesters.find(s => s.id === semesterId);
+        
+        if (!semesterToDelete) {
+            throw new Error('Semester not found');
+        }
+
+        // Check if it's the current semester
+        const currentSemester = getCurrentSemester();
+        if (currentSemester && currentSemester.id === semesterId) {
+            M.toast({html: 'Cannot delete the current semester. Please set another semester as current first.'});
+            return;
+        }
+
+        // Check if there are other semesters
+        if (allSemesters.length <= 1) {
+            M.toast({html: 'Cannot delete the last semester. At least one semester must remain.'});
+            return;
+        }
+
+        // Remove the semester
+        const updatedSemesters = allSemesters.filter(s => s.id !== semesterId);
+        await updateSemesters(updatedSemesters);
+        
+        M.toast({html: 'Semester deleted successfully'});
+        loadSemesters(); // Reload the list
+    } catch (error) {
+        console.error('Error deleting semester:', error);
+        M.toast({html: 'Error deleting semester'});
+    }
+}
+
 // Load semesters for the current user
 async function loadSemesters() {
     try {
+        console.log('Starting to load semesters...');
         const allSemesters = getSemesters();
+        console.log('Retrieved semesters:', allSemesters);
         const currentSemester = getCurrentSemester();
-        console.log(allSemesters)
+        console.log('Current semester:', currentSemester);
         
         // Clear existing list
         semesterList.innerHTML = '';
@@ -42,15 +79,24 @@ async function loadSemesters() {
                 classesInSemester: []
             };
 
-            // Add the default semester
-            await updateSemesters([defaultSemester]);
-            
-            // Set it as current semester
-            setCurrentSemester(defaultSemester);
-            
-            // Reload the list with the new semester
-            await loadSemesters();
-            return;
+            console.log('Created default semester:', defaultSemester);
+
+            try {
+                // Add the default semester
+                await updateSemesters([defaultSemester]);
+                console.log('Successfully saved default semester');
+                
+                // Set it as current semester
+                setCurrentSemester(defaultSemester);
+                console.log('Set default semester as current');
+                
+                // Reload the list with the new semester
+                await loadSemesters();
+                return;
+            } catch (error) {
+                console.error('Error in default semester creation:', error);
+                throw error;
+            }
         }
         
         console.log('Found', allSemesters.length, 'semesters');
@@ -59,7 +105,7 @@ async function loadSemesters() {
         allSemesters.sort((a, b) => new Date(a.start) - new Date(b.start));
         
         allSemesters.forEach(semester => {
-            console.log('Loading semester:', semester);
+            console.log('Processing semester:', semester);
             
             const item = document.createElement('div');
             item.className = 'semester-item';
@@ -71,18 +117,28 @@ async function loadSemesters() {
             }
             
             item.innerHTML = `
-                <div class="semester-item-name">
-                    ${semester.name}
-                    ${currentSemester && currentSemester.id === semester.id ? 
-                        '<span class="current-semester-badge">Current</span>' : ''}
+                <div class="semester-item-content">
+                    <div class="semester-item-name">
+                        ${semester.name}
+                        ${currentSemester && currentSemester.id === semester.id ? 
+                            '<span class="current-semester-badge">Current</span>' : ''}
+                    </div>
+                    <div class="semester-item-dates">
+                        ${formatDate(semester.start)} - ${formatDate(semester.end)}
+                    </div>
                 </div>
-                <div class="semester-item-dates">
-                    ${formatDate(semester.start)} - ${formatDate(semester.end)}
-                </div>
+                <button class="btn-flat delete-semester-btn" data-id="${semester.id}">
+                    <i class="material-icons">delete</i>
+                </button>
             `;
             
             // Add click handler for semester selection
-            item.addEventListener('click', () => {
+            item.addEventListener('click', (e) => {
+                // Don't trigger if clicking the delete button
+                if (e.target.closest('.delete-semester-btn')) {
+                    return;
+                }
+                
                 // Remove active class from all items
                 document.querySelectorAll('.semester-item').forEach(el => {
                     el.classList.remove('active');
@@ -93,11 +149,25 @@ async function loadSemesters() {
                 displaySemesterDetails(semester);
             });
             
+            // Add click handler for delete button
+            const deleteBtn = item.querySelector('.delete-semester-btn');
+            deleteBtn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent triggering the item click
+                if (confirm('Are you sure you want to delete this semester?')) {
+                    deleteSemester(semester.id);
+                }
+            });
+            
             semesterList.appendChild(item);
         });
     } catch (error) {
         console.error('Error loading semesters:', error);
-        M.toast({html: 'Error loading semesters'});
+        console.error('Error details:', {
+            message: error.message,
+            stack: error.stack,
+            name: error.name
+        });
+        M.toast({html: 'Error loading semesters: ' + error.message});
     }
 }
 
@@ -184,6 +254,14 @@ async function addNewSemester(name, startDate, endDate) {
     try {
         console.log('Adding new semester:', { name, startDate, endDate });
 
+        // Set default dates if not provided
+        const today = new Date();
+        const sixMonthsFromNow = new Date();
+        sixMonthsFromNow.setMonth(today.getMonth() + 6);
+
+        const defaultStartDate = startDate || today.toISOString().split('T')[0];
+        const defaultEndDate = endDate || sixMonthsFromNow.toISOString().split('T')[0];
+
         // Get existing semesters and find max ID
         const existingSemesters = getSemesters();
         const maxId = existingSemesters.reduce((max, semester) => Math.max(max, semester.id), 0);
@@ -192,8 +270,8 @@ async function addNewSemester(name, startDate, endDate) {
         const semesterData = {
             id: newId,
             name: name,
-            end: endDate,
-            start: startDate,
+            start: defaultStartDate,
+            end: defaultEndDate,
             classesInSemester: []        
         };
 
@@ -230,10 +308,23 @@ addSemesterForm.addEventListener('submit', (e) => {
 auth.onAuthStateChanged(async user => {
     if (user) {
         console.log('User logged in:', user.uid);
-        // Wait for global state to be initialized
-        await initializeGlobalState();
-        loadSemesters();
+        try {
+            // Wait for global state to be initialized
+            await initializeGlobalState();
+            // Only load semesters if we have a valid user ID
+            if (user.uid) {
+                await loadSemesters();
+            } else {
+                console.error('No user ID available');
+                M.toast({html: 'Error: No user ID available'});
+            }
+        } catch (error) {
+            console.error('Error during initialization:', error);
+            M.toast({html: 'Error initializing application'});
+        }
     } else {
         console.log('No user logged in');
+        // Clear the semester list when logged out
+        semesterList.innerHTML = '<div class="no-semesters">Please log in to view semesters</div>';
     }
 }); 

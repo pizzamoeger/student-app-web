@@ -48,18 +48,42 @@
 		}
 
 		.semester-item {
-			padding: 15px;
+			background: white;
 			border-radius: 8px;
+			padding: 15px;
 			margin-bottom: 10px;
-			background: #f8f9fa;
-			border-left: 4px solid #2196F3;
 			cursor: pointer;
 			transition: all 0.3s ease;
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+		}
+
+		.semester-item-content {
+			flex: 1;
+		}
+
+		.delete-semester-btn {
+			color: #ff5252;
+			padding: 0;
+			margin-left: 10px;
+			opacity: 0.7;
+			transition: opacity 0.3s ease;
+		}
+
+		.delete-semester-btn:hover {
+			opacity: 1;
+			background: none;
+		}
+
+		.delete-semester-btn i {
+			font-size: 20px;
 		}
 
 		.semester-item:hover {
-			background: #e3f2fd;
-			transform: translateX(5px);
+			transform: translateY(-2px);
+			box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 		}
 
 		.semester-item.active {
@@ -363,35 +387,41 @@
 	<!-- Add Semester Modal -->
 	<div id="modal-add-semester" class="modal">
 		<div class="modal-content">
-			<div class="modal-header">
-				<h4 class="modal-title">Add New Semester</h4>
-			</div>
+			<h4>Add New Semester</h4>
 			<form id="add-semester-form">
-				<div class="form-row">
-					<div class="input-field">
-						<i class="material-icons prefix">school</i>
-						<input type="text" id="new-semester-name" required>
-						<label for="new-semester-name">Semester Name</label>
-					</div>
-					<div class="input-field">
-						<i class="material-icons prefix">event</i>
-						<input type="date" id="new-start-date" required>
-						<label for="new-start-date">Start Date</label>
-					</div>
-					<div class="input-field">
-						<i class="material-icons prefix">event</i>
-						<input type="date" id="new-end-date" required>
-						<label for="new-end-date">End Date</label>
-					</div>
+				<div class="input-field">
+					<input type="text" id="new-semester-name" required>
+					<label for="new-semester-name">Semester Name</label>
 				</div>
-				<div class="modal-footer">
-					<button class="btn waves-effect waves-light" type="submit">
-						<i class="material-icons left">add</i>Add Semester
-					</button>
+				<div class="input-field">
+					<input type="date" id="new-start-date" required>
+					<label for="new-start-date">Start Date</label>
 				</div>
+				<div class="input-field">
+					<input type="date" id="new-end-date" required>
+					<label for="new-end-date">End Date</label>
+				</div>
+				<button type="submit" class="btn waves-effect waves-light">
+					<i class="material-icons left">add</i>Add Semester
+				</button>
 			</form>
 		</div>
 	</div>
+
+	<script>
+		// Set default dates for new semester form
+		document.addEventListener('DOMContentLoaded', function() {
+			const today = new Date();
+			const sixMonthsFromNow = new Date();
+			sixMonthsFromNow.setMonth(today.getMonth() + 6);
+
+			const startDateInput = document.getElementById('new-start-date');
+			const endDateInput = document.getElementById('new-end-date');
+
+			startDateInput.value = today.toISOString().split('T')[0];
+			endDateInput.value = sixMonthsFromNow.toISOString().split('T')[0];
+		});
+	</script>
 
 	<!-- Firebase App -->
 	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-app.js"></script>
