@@ -1,4 +1,5 @@
 import { renderClassesStopwatch } from './stopwatch.js';
+import { renderAssignments } from './assignments.js';
 import { updateClasses, getClasses, getCurrentSemester, getSemesters, updateSemesters } from './globalState.js'
 
 const container = document.getElementById("classes-div")
@@ -9,8 +10,13 @@ export function renderScreen() { // TODO export temporary
     const currentPage = window.location.pathname;
     if (currentPage === "/index.html") {
         renderClasses()
-    } else {
+    } else if (currentPage === "/stopwatch.html") {
         renderClassesStopwatch()
+    } else if (currentPage === "/assignments.html") {
+        console.log("renderAssignments")
+        renderAssignments()
+    } else {
+        //renderClasses()
     }
 };
 

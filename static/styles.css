@@ -410,4 +410,332 @@ canvas {
     font-size: 1.1em;
     line-height: 1.5;
     margin: 0;
+}
+
+/* Assignments Page Styles */
+.dashboard {
+    padding: 20px;
+    background-color: #f5f5f5;
+    min-height: calc(100vh - 64px);
+}
+
+.dashboard-header {
+    margin-bottom: 30px;
+}
+
+.header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.header-content h4 {
+    margin: 0;
+    color: #333;
+}
+
+.filters-row {
+    display: flex;
+    gap: 20px;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filters-row .input-field {
+    margin: 0;
+    min-width: 200px;
+}
+
+.assignments-wrapper {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+#no-assignments-message {
+    padding: 60px 20px;
+    color: #666;
+}
+
+#no-assignments-message i {
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+#no-assignments-message h5 {
+    color: #333;
+    margin: 15px 0;
+}
+
+.assignment-card {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-left-width: 4px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    display: flex;
+    transition: all 0.2s ease;
+    overflow: hidden;
+}
+
+.assignment-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.assignment-info {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+.assignment-title {
+    font-size: 1.1em;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 5px;
+}
+
+.assignment-details {
+    color: #666;
+    font-size: 0.9em;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.assignment-class {
+    font-weight: 500;
+}
+
+.assignment-status {
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 0.85em;
+    font-weight: 500;
+    margin: 0 15px;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-in-progress {
+    background-color: #cce5ff;
+    color: #004085;
+}
+
+.status-completed {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.assignment-description {
+    margin-top: 10px;
+    color: #666;
+    font-size: 0.9em;
+    line-height: 1.4;
+}
+
+.assignment-actions {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    align-items: flex-start;
+}
+
+.assignment-actions button {
+    background: none;
+    border: none;
+    padding: 8px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    margin: 0;
+    height: auto;
+}
+
+.assignment-actions button:hover {
+    background-color: #f5f5f5;
+}
+
+.assignment-actions button i {
+    font-size: 1.2em;
+}
+
+.assignment-actions .edit-btn i {
+    color: #2196F3;
+}
+
+.assignment-actions .delete-btn i {
+    color: #dc3545;
+}
+
+/* Modal Styles */
+.modal {
+    max-width: 500px;
+    border-radius: 8px;
+}
+
+.modal .modal-content {
+    padding: 24px;
+}
+
+.modal h4 {
+    margin: 0 0 20px 0;
+    color: #333;
+}
+
+.modal .input-field {
+    margin-bottom: 20px;
+}
+
+/* Datepicker Styles */
+.datepicker-modal {
+    max-width: 250px !important;
+    height: auto !important;
+}
+
+.datepicker-container {
+    transform: scale(0.7);
+    transform-origin: top center;
+}
+
+.datepicker-table td {
+    padding: 0 !important;
+    width: 28px !important;
+    height: 28px !important;
+}
+
+.datepicker-table td button {
+    width: 28px !important;
+    height: 28px !important;
+    line-height: 28px !important;
+    padding: 0 !important;
+    font-size: 0.9rem !important;
+}
+
+.datepicker-calendar-container {
+    padding: 5px !important;
+}
+
+.datepicker-controls {
+    padding: 0 5px !important;
+}
+
+.datepicker-controls .select-month input {
+    width: 60px !important;
+    margin: 0 !important;
+    height: 24px !important;
+    line-height: 24px !important;
+    font-size: 0.9rem !important;
+}
+
+.datepicker-controls .select-year input {
+    width: 50px !important;
+    margin: 0 !important;
+    height: 24px !important;
+    line-height: 24px !important;
+    font-size: 0.9rem !important;
+}
+
+.datepicker-date-display {
+    padding: 10px !important;
+    height: auto !important;
+}
+
+.datepicker-date-display .date-text {
+    font-size: 1.4rem !important;
+}
+
+.datepicker-date-display .year-text {
+    font-size: 1rem !important;
+}
+
+/* Make sure the date input field itself is not too large */
+input[type="text"].datepicker {
+    height: 2.5rem !important;
+    font-size: 0.9rem !important;
+}
+
+/* Materialize Select Override */
+.select-wrapper input.select-dropdown {
+    height: 3rem;
+}
+
+.select-wrapper input.select-dropdown:focus {
+    border-bottom: 1px solid #26a69a;
+}
+
+/* Datepicker Override */
+.datepicker-date-display {
+    background-color: #26a69a;
+}
+
+.datepicker-cancel, .datepicker-done {
+    color: #26a69a;
+}
+
+.datepicker-table td.is-selected {
+    background-color: #26a69a;
+}
+
+.datepicker-table td.is-today {
+    color: #26a69a;
+}
+
+/* Mobile Responsiveness */
+@media (max-width: 768px) {
+    .filters-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .filters-row .input-field {
+        width: 100%;
+    }
+
+    .assignment-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .assignment-actions {
+        width: 100%;
+        justify-content: flex-end;
+    }
+}
+
+/* Date input styles */
+.input-field input[type="date"] {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #9e9e9e;
+    border-radius: 0;
+    outline: none;
+    height: 3rem;
+    width: 100%;
+    font-size: 16px;
+    margin: 0;
+    padding: 0;
+    box-shadow: none;
+    box-sizing: content-box;
+    transition: all 0.3s;
+}
+
+.input-field input[type="date"]:focus {
+    border-bottom: 1px solid #26a69a;
+    box-shadow: 0 1px 0 0 #26a69a;
+}
+
+.input-field span {
+    color: #9e9e9e;
+    font-size: 0.8rem;
+    display: block;
+    margin-bottom: 8px;
 }  

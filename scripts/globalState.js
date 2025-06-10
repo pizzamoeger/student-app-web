@@ -9,6 +9,8 @@ const globalState = {
     semesters: [],
     // All classes
     classes: [],
+    // All assignments
+    assignments: [],
     // Loading state
     isLoading: false,
     // Error state
@@ -23,7 +25,7 @@ async function getData() {
             return doc.data();
         } else {
             console.log("No such document for this user.");
-            return {"classes":"[]", "semester":"[]"};
+            return {"classes":"[]", "semester":"[]", "assignments":"[]"};
         }
     } catch (error) {
         console.error("Error getting document:", error);
@@ -68,6 +70,16 @@ export async function initializeGlobalState() {
             }
         }
 
+        // Parse and set assignments
+        if (data.assignments) {
+            try {
+                globalState.assignments = JSON.parse(data.assignments);
+            } catch (err) {
+                console.error("Error parsing assignments data:", err);
+                globalState.assignments = [];
+            }
+        }
+
         // Set current semester if it exists in the data
         if (data.currentSemesterId) {
             const currentSemester = globalState.semesters.find(s => s.id === data.currentSemesterId);
@@ -104,6 +116,10 @@ export function getCurrentSemester() {
 
 export function getUserData() {
     return globalState.userData;
+}
+
+export function getAssignments() {
+    return globalState.assignments;
 }
 
 // Setters
@@ -173,6 +189,29 @@ async function saveNewClassListToDB(classString) {
         console.log("Document exists. Updating it...");
         await docRef.update({
             classes: classString,
+        });
+    }
+}
+
+export async function updateAssignments(newAssignments) {
+    globalState.assignments = newAssignments;
+    // Update in database
+    await saveAssignmentsToDB(JSON.stringify(newAssignments));
+}
+
+async function saveAssignmentsToDB(assignmentsString) {
+    const docRef = db.collection("user").doc(globalState.uid);
+    const docSnap = await docRef.get();
+
+    if (!docSnap.exists) {
+        console.log("No such document exists. Creating it...");
+        await docRef.set({
+            assignments: assignmentsString,
+        });
+    } else {
+        console.log("Document exists. Updating it...");
+        await docRef.update({
+            assignments: assignmentsString,
         });
     }
 }
