@@ -1,29 +1,15 @@
-import { uid } from './auth.js'; // TODO temp
 import { renderClassesStopwatch } from './stopwatch.js';
-export var data = null
+import { updateClasses, getClasses } from './globalState.js'
+
 const container = document.getElementById("classes-div")
 let currentlyEditingCard = null
 
 // executed as soon as window is loaded
 export function renderScreen() { // TODO export temporary
     const currentPage = window.location.pathname;
-    data = getData()
     if (currentPage === "/index.html") {
-
-        if (!uid) { // user is not logged in
-            renderClasses()
-            return
-        }
-    
         renderClasses()
     } else {
-        data = null
-
-        if (!uid) { // user is not logged in
-            renderClassesStopwatch()
-            return
-        }
-    
         renderClassesStopwatch()
     }
 };
@@ -101,7 +87,7 @@ function enterEditMode(clazz, oldCard) {
         classList[index].name = updatedName;
         classList[index].color = updatedColor;
 
-        await saveNewClassList(classList);
+        await updateClasses(classList);
 
         currentlyEditingCard = null;
         renderClasses();
@@ -144,30 +130,6 @@ function hideSavingOverlay() {
     document.getElementById('saving-overlay').style.display = 'none';
 }
 
-export async function saveNewClassList(newClassList) {
-    const classString = JSON.stringify(newClassList)
-    data.classes = classString;
-    console.log(classString)
-    await saveNewClassListToDB(classString)
-}
-
-async function saveNewClassListToDB(classString) {
-    const docRef = db.collection("user").doc(uid);
-    const docSnap = await docRef.get();
-
-    if (!docSnap.exists) {
-        console.log("No such document exists. Creating it...");
-        await docRef.set({
-            classes: classString,
-        });
-    } else {
-        console.log("Document exists. Updating it...");
-        await docRef.update({
-            classes: classString,
-        });
-    }
-}
-  
 // what to do when add class is pressed
 async function addClass() {
     showSavingOverlay()
@@ -195,7 +157,7 @@ async function addClass() {
         newClassList.push(cl)
     }
 
-    await saveNewClassList(newClassList)
+    await updateClasses(newClassList)
     renderScreen()
 }
 
@@ -204,27 +166,8 @@ async function deleteClass(id) {
     const classList = getClasses();
     const newClassList = classList.filter(clazz => clazz.id !== id);
 
-    await saveNewClassList(newClassList)
+    await updateClasses(newClassList)
     renderClasses()
-}
-
-// returns classes that are stored in db
-export function getClasses() {
-    if (!data) return []
-
-    const classString = data.classes; // get the classes field
-    if (!classString) return []
-    try {
-        // try parsing it
-        const classList = JSON.parse(classString);
-        if (!Array.isArray(classList)) {
-            throw new Error("Parsed classes is not an array");
-        }
-        return classList;
-    } catch (err) {
-        console.error("Error parsing 'classes':", err);
-        throw err;
-    }
 }
 
 // generates a random color int

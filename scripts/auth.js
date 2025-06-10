@@ -1,19 +1,21 @@
 import { renderScreen } from './classes.js'; // TODO temp
+import { initializeGlobalState, setUID } from './globalState.js';
 
 // get data from db
-export var uid = null
 // listen for auth status changes
-auth.onAuthStateChanged(user => {
+auth.onAuthStateChanged(async user => {
     if (user) { // user is logged in
-        uid = user.uid;
+        setUID(user.uid);
         document.querySelectorAll('.logged-in').forEach(el => {
             el.style.display = '';
         });
         document.querySelectorAll('.logged-out').forEach(el => {
             el.style.display = 'none';
         });
+        // Initialize global state when user logs in
+        await initializeGlobalState();
     } else {
-        uid = null
+        setUID(null);
         document.querySelectorAll('.logged-in').forEach(el => {
             el.style.display = 'none';
         });
@@ -75,20 +77,4 @@ function showSavingOverlay() {
 
 function hideSavingOverlay() {
     document.getElementById('saving-overlay').style.display = 'none';
-}
-
-export async function getData() {
-    try {
-        const doc = await db.collection("user").doc(uid).get();
-        if (doc.exists) {
-            console.log("Document data:", doc.data());
-            return doc.data();
-        } else {
-            console.log("No such document for this user.");
-            return {"classes":"[]", "semester":"[]"};
-        }
-    } catch (error) {
-        console.error("Error getting document:", error);
-        throw error;
-    }
 }

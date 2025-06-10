@@ -1,16 +1,4 @@
-import {getClasses, saveNewClassList, data} from './classes.js';
-
-// Your web app's Firebase configuration
-// For Firebase JS SDK v7.20.0 and later, measurementId is optional
-const firebaseConfig = {
-    apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
-    authDomain: "student-app-924e4.firebaseapp.com",
-    projectId: "student-app-924e4",
-    storageBucket: "student-app-924e4.firebasestorage.app",
-    messagingSenderId: "1009631248066",
-    appId: "1:1009631248066:web:53c121933b86f00204855b",
-    measurementId: "G-935GV9TRS6"
-};
+import { updateClasses, getClasses } from './globalState.js';
 
 const container = document.getElementById("classes-div")
 
@@ -151,15 +139,17 @@ function renderClassCard(clazz) {
             const index = classList.findIndex(c => c.id === clazz.id);
             if (index === -1) return;
     
-            const curSecs = classList[index].studyTime[getDate(new Date())];
-            classList[index].studyTime[getDate(new Date())] = curSecs?pendingSeconds:curSecs+pendingSeconds;
+            let curSecs = classList[index].studyTime[getDate(new Date())];
+            if (!Number.isInteger(curSecs)) curSecs = 0;
+            classList[index].studyTime[getDate(new Date())] = curSecs+pendingSeconds;
 
             pendingSeconds=0
             clearInterval(intervalId)
             intervalId=null
             card.querySelector('#start-button').textContent = "Start"
             
-            await saveNewClassList(classList)
+            await updateClasses(classList)
+            console.log(classList)
 
             hideSavingOverlay()
             renderClassesStopwatch()
