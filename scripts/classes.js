@@ -260,14 +260,14 @@ function hideSavingOverlay() {
 }
 
 // Add new class
-async function addClass(className) {
+async function addClass(className, color) {
     try {
         showSavingOverlay();
         
         const classData = {
             id: Date.now(),
             name: className,
-            color: '#2196F3', // Default color
+            color: hexToInt(color),
             assignments: []
         };
 
@@ -317,6 +317,17 @@ document.addEventListener('DOMContentLoaded', function() {
     if (addClassButton) {
         addClassButton.addEventListener('click', function(e) {
             e.preventDefault();
+            // Set random defaults
+            const randomNum = Math.floor(Math.random() * 1000) + 1;
+            const randomColor = '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6, '0');
+            
+            const nameInput = document.getElementById('class-name');
+            nameInput.value = `Class ${randomNum}`;
+            M.textareaAutoResize(nameInput);
+            M.updateTextFields();
+            
+            document.getElementById('class-color').value = randomColor;
+            
             const modal = document.getElementById('add-class-modal');
             const instance = M.Modal.getInstance(modal);
             if (instance) {
@@ -330,9 +341,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if (confirmAddClassBtn) {
         confirmAddClassBtn.addEventListener('click', () => {
             const name = document.getElementById('class-name').value;
+            const color = document.getElementById('class-color').value;
 
             if (name) {
-                addClass(name);
+                addClass(name, color);
                 const modal = document.getElementById('add-class-modal');
                 const modalInstance = M.Modal.getInstance(modal);
                 modalInstance.close();
