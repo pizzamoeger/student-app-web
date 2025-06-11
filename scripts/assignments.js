@@ -1,4 +1,4 @@
-import { getCurrentSemester, getSemesters, getAssignments, updateAssignments, getClasses } from './globalState.js';
+import { getCurrentSemester, getSemesters, getAssignments, updateAssignments, getClasses, initializeGlobalState, isStateInitialized } from './globalState.js';
 
 // Assignment structure in localStorage:
 // assignments = [
@@ -28,15 +28,41 @@ const classFilter = document.getElementById('class-filter');
 const statusFilter = document.getElementById('status-filter');
 
 // Initialize the page
-function init() {
+async function init() {
     console.log('Initializing assignments page');
-    loadAssignments();
-    setupEventListeners();
-    initializeMaterialize();
-    populateFilters();
-    populateClassSelect();
-    renderAssignments();
-    console.log('Initialization complete');
+    try {
+        // Show loading state
+        document.getElementById('saving-overlay').style.display = 'flex';
+        
+        // Wait for global state to be initialized
+        if (!isStateInitialized()) {
+            console.log('Waiting for global state initialization...');
+            await initializeGlobalState();
+        }
+        
+        // Verify that initialization was successful
+        if (!isStateInitialized()) {
+            throw new Error('Failed to initialize global state');
+        }
+        
+        // Now that global state is ready, load assignments
+        assignments = getAssignments() || [];
+        console.log('Assignments loaded successfully:', assignments);
+
+        setupEventListeners();
+        initializeMaterialize();
+        populateFilters();
+        populateClassSelect();
+        renderAssignments();
+        console.log('Initialization complete');
+        
+        // Hide loading state
+        document.getElementById('saving-overlay').style.display = 'none';
+    } catch (error) {
+        console.error('Error during initialization:', error);
+        M.toast({html: 'Error loading data. Please try refreshing the page.'});
+        document.getElementById('saving-overlay').style.display = 'none';
+    }
 }
 
 // Initialize Materialize components
@@ -106,14 +132,27 @@ function initializeMaterialize() {
 }
 
 // Load assignments from Firebase
-function loadAssignments() {
-    // Assignments are already loaded in global state during initialization
-    const assignments = getAssignments();
-    console.log('Loaded assignments:', assignments);  // Debug log
-    if (!assignments) {
-        console.error('No assignments found');
-        return;
+async function loadAssignments() {
+    // Wait for assignments to be available in global state
+    let retries = 0;
+    const maxRetries = 10;
+    const retryDelay = 500; // 500ms between retries
+
+    while (retries < maxRetries) {
+        const assignments = getAssignments();
+        console.log('Attempting to load assignments, attempt:', retries + 1);
+        
+        if (assignments !== null && assignments !== undefined) {
+            console.log('Assignments loaded successfully:', assignments);
+            return assignments;
+        }
+
+        // Wait before next retry
+        await new Promise(resolve => setTimeout(resolve, retryDelay));
+        retries++;
     }
+
+    throw new Error('Failed to load assignments after multiple attempts');
 }
 
 // Save assignments to localStorage
@@ -260,6 +299,7 @@ function populateFilters() {
 function updateClassFilter() {
     const selectedSemester = semesterFilter.value;
     const classes = getClasses();
+    console.log('Classes:', classes);
     
     classFilter.innerHTML = '<option value="all">All Classes</option>';
     
@@ -466,5 +506,23 @@ async function deleteAssignment(id) {
     }
 }
 
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', init); 
+// Initialize when DOM is loaded and user is authenticated
+auth.onAuthStateChanged(async user => {
+    if (user) {
+        console.log('User logged in, initializing assignments page');
+        try {
+            await init();
+        } catch (error) {
+            console.error('Error during initialization:', error);
+            M.toast({html: 'Error initializing page. Please try refreshing.'});
+            document.getElementById('saving-overlay').style.display = 'none';
+        }
+    } else {
+        console.log('No user logged in');
+        // Clear any existing assignments
+        assignmentsList.innerHTML = '';
+        noAssignmentsMessage.style.display = 'none';
+        // Hide loading state if shown
+        document.getElementById('saving-overlay').style.display = 'none';
+    }
+}); 

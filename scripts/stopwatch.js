@@ -264,7 +264,7 @@ export function renderClassesStopwatch(callback) {
     } else {
         if (dayChartCanvas) dayChartCanvas.style.display = 'block';
         if (noDayData) noDayData.style.display = 'none';
-        dayChart = drawPieChart(pieDataDay, 'dayPieChart', dayChart);
+    dayChart = drawPieChart(pieDataDay, 'dayPieChart', dayChart);
     }
 
     // Handle week chart
@@ -276,7 +276,7 @@ export function renderClassesStopwatch(callback) {
     } else {
         if (weekChartCanvas) weekChartCanvas.style.display = 'block';
         if (noWeekData) noWeekData.style.display = 'none';
-        weekChart = drawPieChart(pieDataWeek, 'weekPieChart', weekChart);
+    weekChart = drawPieChart(pieDataWeek, 'weekPieChart', weekChart);
     }
 
     // Handle month chart
@@ -288,7 +288,7 @@ export function renderClassesStopwatch(callback) {
     } else {
         if (monthChartCanvas) monthChartCanvas.style.display = 'block';
         if (noMonthData) noMonthData.style.display = 'none';
-        monthChart = drawPieChart(pieDataMonth, 'monthPieChart', monthChart);
+    monthChart = drawPieChart(pieDataMonth, 'monthPieChart', monthChart);
     }
 
     if (callback) callback();
