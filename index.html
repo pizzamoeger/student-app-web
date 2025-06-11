@@ -11,7 +11,7 @@
 
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 	<title>Classes</title>
-	<style>
+	<!--<style>
 		#classes-div {
 			display: flex;
 			flex-wrap: wrap;
@@ -69,7 +69,7 @@
 		.deleteButton:hover {
 			background-color: #D32F2F;
 		}
-	</style>
+	</style>-->
 </head>
 
 <body id="classes">
@@ -103,39 +103,95 @@
 		</div>
 	</nav>
 
-	<div class="abschnitt center">
-		<h1>Manage your classes</h1>
+	<div class="logged-in">
+		<div class="dashboard">
+			<div class="dashboard-header">
+				<h4>My Classes</h4>
+			</div>
+
+			<div class="dashboard-content">
+				<div class="classes-list" id="classes-list">
+					<!-- Class list items will be added here -->
+				</div>
+				<div class="class-details" id="class-details">
+					<div class="no-semester-selected">
+						<h5>Select a semester to view details</h5>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
-	<button id="addClassButton" class="btn waves-effect waves-light">Add Class</button>
 
-	<template id="class-blueprint-normal">
-		<div class="card">
-		  <h3>Title</h3>
-		  <button class="editButton">Edit</button>
+	<div class="container logged-out">
+		<div class="welcome-container">
+			<i class="fas fa-graduation-cap fa-4x"></i>
+			<h4>Welcome to Student Study Tracker!</h4>
+			<p>Track your assignments, manage your study time, and stay organized.</p>
+			<p class="cta-text">Please log in or sign up to get started!</p>
 		</div>
-	</template>
-
-	<template id="class-blueprint-edit">
-		<div class="card">
-		  <h3>Title EDITING</h3>
-		  <input type="text" class="nameInput" name="name" required><br><br>
-		  <input type="color" class="colorInput" name="classColor"><br><br>  
-		  <div class="btn-group">
-			<button class="saveButton">Save</button>
-			<button class="cancelButton">Cancel</button>
-			<button class="deleteButton">Delete</button>
-		  </div>
-		</div>
-	</template>
-
-	<div id="classes-div">
-		<!--classes displayed in here-->
 	</div>
 
 	<div id="saving-overlay">
 		<div class="saving-message">
 			<span>Loading...</span>
 			<div class="spinner"></div>
+		</div>
+	</div>	  
+
+	 <!-- SIGN UP MODAL -->
+	 <div id="modal-signup" class="modal">
+		<div class="modal-content">
+			<h4>Sign up</h4><br />
+			<form id="signup-form">
+			<div class="input-field">
+				<input type="email" id="signup-email" required />
+				<label for="signup-email">Email address</label>
+			</div>
+			<div class="input-field">
+				<input type="password" id="signup-password" required />
+				<label for="signup-password">Choose password</label>
+			</div>
+			<button class="btn blue darken-2 z-depth-0">Sign up</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- LOGIN MODAL -->
+	<div id="modal-login" class="modal">
+		<div class="modal-content">
+			<h4>Login</h4><br />
+			<form id="login-form">
+			<div class="input-field">
+				<input type="email" id="login-email" required />
+				<label for="login-email">Email address</label>
+			</div>
+			<div class="input-field">
+				<input type="password" id="login-password" required />
+				<label for="login-password">Your password</label>
+			</div>
+			<button class="btn blue darken-2 z-depth-0">Login</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- Add Class Modal -->
+	<div id="add-class-modal" class="modal">
+		<div class="modal-content">
+			<h4>Add New Class</h4>
+			<div class="row">
+				<form id="add-class-form">
+					<div class="input-field col s12">
+						<input type="text" id="class-name" required>
+						<label for="class-name">Class Name</label>
+					</div>
+					
+					<!-- TODO add color picker and more stuff for class -->
+				</form>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+			<button class="waves-effect waves-light btn" id="confirm-add-class">Add Class</button>
 		</div>
 	</div>
 

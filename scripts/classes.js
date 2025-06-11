@@ -45,33 +45,87 @@ function renderClassCard(clazz) {
     container.appendChild(card);
 }
 
-// Display classes for the current user
-function displayClasses() {
-    const classList = getClasses();
-    const currentSemester = getCurrentSemester();
-    
-    // Clear existing content
-    container.innerHTML = '';
+// Load classes for the current user
+async function loadClasses() {
+    try {
+        const classes = getClasses();
+        const classesList = document.getElementById('classes-list');
 
-    if (!currentSemester) {
-        container.innerHTML = '<div class="no-classes">Please select a semester first</div>';
-        return;
+        classesList.innerHTML = `
+            <button class="btn waves-effect waves-light add-class-btn" id="add-class-btn">
+                <i class="material-icons left">add</i>Add Class
+            </button>
+            <div class="classes-list-content">
+                ${!classes || classes.length === 0 ? 
+                    '<div class="no-classes">No classes found. Add your first class!</div>' :
+                    classes.map(clazz => {
+                        // here u could put some vars
+                        return `
+                            <div class="class-item" data-id="${clazz.id}">
+                                <div class="class-item-content">
+                                    <div class="class-item-main">
+                                        <h5>${clazz.name}</h5>
+                                    </div>
+                                </div>
+                                <div class="class-item-footer">
+                                    <button class="btn-flat delete-class-btn" data-id="${clazz.id}">
+                                        <i class="material-icons">delete</i>
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')
+                }
+            </div>
+        `;
+
+        // Add click event listener for the Add class button
+        const addClassButton = document.getElementById('add-class-btn');
+        if (addClassButton) {
+            addClassButton.addEventListener('click', () => {
+                const modal = document.getElementById('add-class-modal');
+                const instance = M.Modal.getInstance(modal);
+                if (instance) {
+                    instance.open();
+                }
+            });
+        }
+
+        // Add click event listeners to class items
+        document.querySelectorAll('.class-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Don't trigger if clicking on a button or its children
+                if (e.target.closest('button') || e.target.closest('select') || e.target.closest('input')) {
+                    return;
+                }
+                const classId = parseInt(item.dataset.id);
+                const clazz = classes.find(s => s.id === classId);
+                if (clazz) {
+                    displayClassDetails(clazz);
+                }
+            });
+        });
+
+        // Add click event listeners to delete buttons
+        document.querySelectorAll('.delete-class-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent the class item click
+                const classId = parseInt(btn.dataset.id);
+                if (confirm('Are you sure you want to delete this class?')) {
+                    deleteClass(classId);
+                }
+            });
+        });
+
+        // Hide loading overlay after successful load
+        document.getElementById('saving-overlay').style.display = 'none';
+
+    } catch (error) {
+        console.error('Error loading classes:', error);
+        M.toast({html: 'Error loading classes'});
+        // Hide loading overlay on error
+        document.getElementById('saving-overlay').style.display = 'none';
     }
-
-    // Filter classes to only show those in the current semester
-    const semesterClasses = classList.filter(classItem => 
-        currentSemester.classesInSemester.includes(classItem.id)
-    );
-
-    if (semesterClasses.length === 0) {
-        container.innerHTML = '<div class="no-classes">No classes in this semester yet</div>';
-        return;
-    }
-
-    // Display each class
-    semesterClasses.forEach(classItem => {
-        renderClassCard(classItem);
-    });
 }
 
 function enterEditMode(clazz, oldCard) {
@@ -132,9 +186,47 @@ function enterEditMode(clazz, oldCard) {
     container.replaceChild(card, oldCard);
 }
 
+// Display class details
+function displayClassDetails(clazz) {
+    const detailsContainer = document.getElementById('class-details');
+    
+    // Remove selected class from all class items
+    document.querySelectorAll('.class-item').forEach(item => {
+        item.classList.remove('selected');
+    });
+    
+    // Add selected class to the current class item
+    const selectedItem = document.querySelector(`.class-item[data-id="${clazz.id}"]`);
+    if (selectedItem) {
+        selectedItem.classList.add('selected');
+    }
+    
+    detailsContainer.innerHTML = `
+        <div class="class-details-content">
+            <div class="class-header">
+                <div class="editable-name">
+                    <h4 id="class-name" contenteditable="true">${clazz.name}</h4>
+                    <i class="material-icons edit-icon">edit</i>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Add event listeners for editing
+    const nameElement = document.getElementById('class-name');
+
+    // Handle name editing
+    nameElement.addEventListener('blur', () => {
+        const newName = nameElement.textContent.trim();
+        if (newName && newName !== clazz.name) {
+            updateClassDetails(clazz.id, { name: newName });
+        }
+    });
+}
+
 function renderClasses(callback) {
-    container.innerHTML = ""
-    displayClasses()
+    //container.innerHTML = ""
+    loadClasses()
     if (callback) callback()
     hideSavingOverlay();
 }
@@ -197,7 +289,7 @@ async function addClass() {
         M.toast({html: 'New class added successfully!'});
         
         // Update only the classes display
-        displayClasses();
+        loadClasses();
     } catch (error) {
         console.error('Error adding class:', error);
         hideSavingOverlay();
