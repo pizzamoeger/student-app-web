@@ -2,22 +2,63 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" type="text/css" href="static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
     <title>Edit Class</title>
 </head>
 <body>
+    <nav class="z-depth-0 lighten-4 navbar">
+        <div class="nav-wrapper container">
+            <ul id="nav-mobile" class="right hide-on-med-and-down nav justify-content-end">
+                <li class="logged-in">
+                    <a href="#" class="nav-link text-white" id="logout">Logout</a>
+                </li>
+                <li class="logged-out">
+                    <a href="#" class="nav-link text-white modal-trigger" data-target="modal-login">Login</a>
+                </li>
+                <li class="logged-out">
+                    <a href="#" class="nav-link text-white modal-trigger" data-target="modal-signup">Sign up</a>
+                </li>
+                <li class="nav-item logged-in">
+                    <a class="nav-link text-white" href="index.html">Classes</a>
+                </li>
+                <li class="nav-item logged-in"> 
+                    <a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
+                </li>
+                <li class="nav-item logged-in"> 
+                    <a class="nav-link text-white" href="semester.html">Semester</a>
+                </li>
+                <li class="nav-item logged-in">
+                    <a class="nav-link text-white" href="assignments.html">Assignments</a>
+                </li>
+                <li class="nav-item logged-in">
+                    <a class="nav-link text-white" href="timetable.html">Timetable</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
 
-    <h2>Edit Class</h2>
-    <form id="addClassForm">
-        <label for="name">Class name:</label><br>
-        <input type="text" id="class-name" name="name" required><br><br>
+    <div class="container">
+        <h2>Edit Class</h2>
+        <form id="editClassForm">
+            <div class="input-field">
+                <input type="text" id="class-name" name="name" required>
+                <label for="class-name">Class name</label>
+            </div>
 
-        <label for="class-color">Color:</label><br>
-        <input type="color" id="class-color" name="classColor" value="#ff0000"><br><br>    
+            <div class="input-field">
+                <input type="color" id="class-color" name="classColor" value="#ff0000">
+                <label for="class-color">Color</label>
+            </div>
 
-        <input type="submit" value="Submit">
-    </form>
+            <button class="btn waves-effect waves-light blue" type="submit">Save Changes</button>
+        </form>
+    </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
     <script type="module" src="static/edit_class.js"></script>
-
 </body>
 </html>

@@ -10,7 +10,10 @@
 
     <!-- Firebase Firestore or Realtime Database -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 	<link rel="stylesheet" type="text/css" href="static/styles.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 	<nav class="navbar navbar-dark dark sticky-top">
 		<div class="dark p-4">
@@ -31,13 +34,149 @@
 		</div>
 	</nav>
 
-	<title>timteable</title>
+	<title>Timetable</title>
 </head>
 
-<body id="timteable">
-	<div class="abschnitt center">
-		<h1>timteable</h1>
+<body id="timetable">
+	<nav class="z-depth-0 lighten-4 navbar">
+		<div class="nav-wrapper container">
+			<ul id="nav-mobile" class="right hide-on-med-and-down nav justify-content-end">
+				<li class="logged-in">
+					<a href="#" class="nav-link text-white" id="logout">Logout</a>
+				</li>
+				<li class="logged-out">
+					<a href="#" class="nav-link text-white modal-trigger" data-target="modal-login">Login</a>
+				</li>
+				<li class="logged-out">
+					<a href="#" class="nav-link text-white modal-trigger" data-target="modal-signup">Sign up</a>
+				</li>
+				<li class="nav-item logged-in">
+					<a class="nav-link text-white" href="index.html">Classes</a>
+				</li>
+				<li class="nav-item logged-in"> 
+					<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
+				</li>
+				<li class="nav-item logged-in"> 
+					<a class="nav-link text-white" href="semester.html">Semester</a>
+				</li>
+				<li class="nav-item logged-in">
+					<a class="nav-link text-white" href="assignments.html">Assignments</a>
+				</li>
+				<li class="nav-item logged-in">
+					<a class="nav-link text-white" href="timetable.html">Timetable</a>
+				</li>
+			</ul>
+		</div>
+	</nav>
+
+	<div class="logged-in">
+		<div class="dashboard">
+			<div class="dashboard-header">
+				<h4>Timetable</h4>
+				<button class="btn-floating btn-small waves-effect waves-light blue" id="add-event-btn">
+					<i class="material-icons">add</i>
+				</button>
+			</div>
+
+			<div class="dashboard-content">
+				<div class="timetable-container">
+					<div class="week-navigation">
+						<button class="btn-flat" id="prev-week">
+							<i class="material-icons">chevron_left</i>
+						</button>
+						<h5 id="week-display">Week of May 1, 2024</h5>
+						<button class="btn-flat" id="next-week">
+							<i class="material-icons">chevron_right</i>
+						</button>
+					</div>
+					<div class="timetable-grid" id="timetable-grid">
+						<!-- Days will be populated here -->
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
+
+	<div class="container logged-out">
+		<div class="welcome-container">
+			<i class="fas fa-graduation-cap fa-4x"></i>
+			<h4>Welcome to Student Study Tracker!</h4>
+			<p>Track your assignments, manage your study time, and stay organized.</p>
+			<p class="cta-text">Please log in or sign up to get started!</p>
+		</div>
+	</div>
+
+	<!-- Add Event Modal -->
+	<div id="add-event-modal" class="modal">
+		<div class="modal-content">
+			<h4>Add Event</h4>
+			<form id="add-event-form">
+				<div class="input-field">
+					<input type="text" id="event-title" required>
+					<label for="event-title">Event Title</label>
+				</div>
+				<div class="input-field">
+					<input type="text" id="event-class" required>
+					<label for="event-class">Class</label>
+				</div>
+				<div class="row">
+					<div class="input-field col s6">
+						<input type="time" id="event-start" required>
+						<label for="event-start">Start Time</label>
+					</div>
+					<div class="input-field col s6">
+						<input type="time" id="event-end" required>
+						<label for="event-end">End Time</label>
+					</div>
+				</div>
+				<div class="row">
+					<div class="input-field col s12">
+						<select id="event-day" required>
+							<option value="" disabled selected>Choose day</option>
+							<option value="monday">Monday</option>
+							<option value="tuesday">Tuesday</option>
+							<option value="wednesday">Wednesday</option>
+							<option value="thursday">Thursday</option>
+							<option value="friday">Friday</option>
+							<option value="saturday">Saturday</option>
+							<option value="sunday">Sunday</option>
+						</select>
+						<label>Day</label>
+					</div>
+				</div>
+			</form>
+		</div>
+		<div class="modal-footer">
+			<button class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+			<button class="waves-effect waves-light btn blue" id="save-event-btn">Save Event</button>
+		</div>
+	</div>
+
+	<!-- Firebase App -->
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-app.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-auth.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-firestore.js"></script>
+
+	<script>
+		const firebaseConfig = {
+			apiKey: "AIzaSyBqQkGDw0kRlyCLUxhEb1hzUnPnfPDWMOQ",
+			authDomain: "student-app-924e4.firebaseapp.com",
+			projectId: "student-app-924e4",
+			storageBucket: "student-app-924e4.firebasestorage.app",
+			messagingSenderId: "1009631248066",
+			appId: "1:1009631248066:web:53c121933b86f00204855b",
+			measurementId: "G-935GV9TRS6"
+		};
+
+		// Initialize Firebase
+		firebase.initializeApp(firebaseConfig);
+		const auth = firebase.auth();
+		const db = firebase.firestore();
+		db.settings({ timestampsInSnapshots: true });
+	</script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+	<script src="scripts/auth.js" type="module"></script>
+	<script src="scripts/timetable.js" type="module"></script>
 </body>
 
 </html>
