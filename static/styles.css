@@ -1615,6 +1615,7 @@ input[type="text"].datepicker {
     transition: opacity 0.2s;
     height: 32px;
     box-sizing: border-box;
+    margin: 0;
 }
 
 .current-semester-badge:hover {
@@ -1653,6 +1654,7 @@ input[type="text"].datepicker {
     position: relative;
     height: 32px;
     box-sizing: border-box;
+    margin: 0;
 }
 
 .set-current-btn:hover {
