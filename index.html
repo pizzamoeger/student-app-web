@@ -16,95 +16,29 @@
 <body id="classes">
 
 	<!-- NAVBAR -->
-	<nav class="navbar">
-		<div class="nav-wrapper container">
-			<a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
-			<ul class="nav">
-				<li class="logged-in">
-					<a href="#" class="nav-link" id="logout">Logout</a>
+	<nav class="navbar navbar-dark dark sticky-top">
+		<div class="dark p-4">
+			<ul class="nav justify-content-end">
+				<li class="nav-item">
+					<a class="nav-link text-white" href="classes.html">Classes</a>
 				</li>
-				<li class="logged-out">
-					<a href="#" class="nav-link modal-trigger" data-target="modal-login">Login</a>
+				<li class="nav-item">
+					<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
 				</li>
-				<li class="logged-out">
-					<a href="#" class="nav-link modal-trigger" data-target="modal-signup">Sign up</a>
+				<li class="nav-item">
+					<a class="nav-link text-white" href="timetable.html">Timteable</a>
 				</li>
-				<li class="nav-item logged-in">
-					<a class="nav-link" href="index.html">Classes</a>
-				</li>
-				<li class="nav-item logged-in"> 
-					<a class="nav-link" href="stopwatch.html">Stopwatch</a>
-				</li>
-				<li class="nav-item logged-in"> 
-					<a class="nav-link" href="semester.html">Semester</a>
-				</li>
-				<li class="nav-item logged-in">
-					<a class="nav-link" href="assignments.html">Assignments</a>
+				<li class="nav-item">
+					<a class="nav-link text-white" href="assignments.html">Assignments</a>
 				</li>
 			</ul>
 		</div>
 	</nav>
 
-	<!-- Mobile Navigation -->
-	<ul class="sidenav" id="mobile-nav">
-		<li class="logged-in">
-			<a href="#" class="nav-link" id="logout-mobile">Logout</a>
-		</li>
-		<li class="logged-out">
-			<a href="#" class="nav-link modal-trigger" data-target="modal-login">Login</a>
-		</li>
-		<li class="logged-out">
-			<a href="#" class="nav-link modal-trigger" data-target="modal-signup">Sign up</a>
-		</li>
-		<li class="nav-item logged-in">
-			<a class="nav-link" href="index.html">Classes</a>
-		</li>
-		<li class="nav-item logged-in"> 
-			<a class="nav-link" href="stopwatch.html">Stopwatch</a>
-		</li>
-		<li class="nav-item logged-in"> 
-			<a class="nav-link" href="semester.html">Semester</a>
-		</li>
-		<li class="nav-item logged-in">
-			<a class="nav-link" href="assignments.html">Assignments</a>
-		</li>
-	</ul>
-
-	  <!-- SIGN UP MODAL -->
-	<div id="modal-signup" class="modal">
-		<div class="modal-content">
-			<h4>Sign up</h4><br />
-			<form id="signup-form">
-			<div class="input-field">
-				<input type="email" id="signup-email" required />
-				<label for="signup-email">Email address</label>
-			</div>
-			<div class="input-field">
-				<input type="password" id="signup-password" required />
-				<label for="signup-password">Choose password</label>
-			</div>
-			<button class="btn blue darken-2 z-depth-0">Sign up</button>
-			</form>
-		</div>
+	<div class="abschnitt center">
+		<h1>Manage your classes</h1>
 	</div>
-
-	<!-- LOGIN MODAL -->
-	<div id="modal-login" class="modal">
-		<div class="modal-content">
-			<h4>Login</h4><br />
-			<form id="login-form">
-			<div class="input-field">
-				<input type="email" id="login-email" required />
-				<label for="login-email">Email address</label>
-			</div>
-			<div class="input-field">
-				<input type="password" id="login-password" required />
-				<label for="login-password">Your password</label>
-			</div>
-			<button class="btn blue darken-2 z-depth-0">Login</button>
-			</form>
-		</div>
-	</div>
+	<button id="addClassButton">Add class</button>
 
 	<template id="class-blueprint-normal">
 		<div class="card">
@@ -115,6 +49,7 @@
 
 	<template id="class-blueprint-edit">
 		<div class="card">
+		  <h3>Title EDITING</h3>
 		  <input type="text" class="nameInput" name="name" required><br><br>
 		  <input type="color" class="colorInput" name="classColor"><br><br>  
 		  <div class="btn-group">
@@ -125,21 +60,8 @@
 		</div>
 	</template>
 
-	<div class="container logged-in">
-		<h1>Manage your classes</h1>
-		<button id="addClassButton">Add class</button>
-		<div id="classes-div">
-			<!--classes displayed in here-->
-		</div>
-	</div>
-
-	<div class="container logged-out">
-		<div class="welcome-container">
-			<i class="fas fa-graduation-cap fa-4x"></i>
-			<h4>Welcome to Student Study Tracker!</h4>
-			<p>Track your assignments, manage your study time, and stay organized.</p>
-			<p class="cta-text">Please log in or sign up to get started!</p>
-		</div>
+	<div id="classes-div">
+		<!--classes displayed in here-->
 	</div>
 
 	<div id="saving-overlay">
