@@ -59,8 +59,9 @@ async function loadClasses() {
         classesListContent.innerHTML = !classes || classes.length === 0 ? 
             '<div class="no-classes">No classes found. Add your first class!</div>' :
             classes.map(clazz => {
+                const backgroundColor = intToRGBHex(clazz.color) || '#2196F3';
                 return `
-                    <div class="class-item" data-id="${clazz.id}">
+                    <div class="class-item" data-id="${clazz.id}" style="background-color: ${backgroundColor}">
                         <div class="class-item-content">
                             <div class="class-item-main">
                                 <h5>${clazz.name}</h5>
@@ -173,39 +174,64 @@ function enterEditMode(clazz, oldCard) {
 // Display class details
 function displayClassDetails(clazz) {
     const detailsContainer = document.getElementById('class-details');
-    
-    // Remove selected class from all class items
-    document.querySelectorAll('.class-item').forEach(item => {
-        item.classList.remove('selected');
-    });
-    
-    // Add selected class to the current class item
-    const selectedItem = document.querySelector(`.class-item[data-id="${clazz.id}"]`);
-    if (selectedItem) {
-        selectedItem.classList.add('selected');
-    }
-    
+    if (!detailsContainer) return;
+
     detailsContainer.innerHTML = `
-        <div class="class-details-content">
-            <div class="class-header">
-                <div class="editable-name">
-                    <h4 id="class-name" contenteditable="true">${clazz.name}</h4>
-                    <i class="material-icons edit-icon">edit</i>
+        <div class="class-header">
+            <div class="editable-name">
+                <h4 contenteditable="true" data-id="${clazz.id}">${clazz.name}</h4>
+                <i class="material-icons edit-icon">edit</i>
+            </div>
+        </div>
+        <div class="class-info">
+            <div class="info-item">
+                <i class="material-icons">color_lens</i>
+                <div class="editable-color">
+                    <input type="color" id="class-color" value="${intToRGBHex(clazz.color) || '#2196F3'}" data-id="${clazz.id}">
+                    <span>Class Color</span>
                 </div>
             </div>
         </div>
+        <div class="class-actions">
+            <button class="btn waves-effect waves-light save-class-btn" id="save-class-btn">
+                <i class="material-icons left">save</i>Save Changes
+            </button>
+        </div>
     `;
 
-    // Add event listeners for editing
-    const nameElement = document.getElementById('class-name');
-
-    // Handle name editing
-    nameElement.addEventListener('blur', () => {
+    // Add event listener for save button
+    const saveButton = detailsContainer.querySelector('#save-class-btn');
+    saveButton.addEventListener('click', function() {
+        const nameElement = detailsContainer.querySelector('.editable-name h4');
+        const colorInput = detailsContainer.querySelector('#class-color');
         const newName = nameElement.textContent.trim();
-        if (newName && newName !== clazz.name) {
-            updateClassDetails(clazz.id, { name: newName });
+        const newColor = hexToInt(colorInput.value);
+
+        if (newName !== clazz.name || newColor !== clazz.color) {
+            updateClassDetails(clazz.id, { name: newName, color: newColor });
         }
     });
+}
+
+// Update class details
+async function updateClassDetails(classId, updates) {
+    try {
+        showSavingOverlay();
+        const classes = getClasses();
+        const classIndex = classes.findIndex(c => c.id === classId);
+        
+        if (classIndex !== -1) {
+            classes[classIndex] = { ...classes[classIndex], ...updates };
+            await updateClasses(classes);
+            renderClasses();
+            M.toast({html: 'Class updated successfully'});
+        }
+    } catch (error) {
+        console.error('Error updating class:', error);
+        M.toast({html: 'Error updating class'});
+    } finally {
+        hideSavingOverlay();
+    }
 }
 
 function renderClasses(callback) {
@@ -238,46 +264,24 @@ async function addClass(className) {
     try {
         showSavingOverlay();
         
-        // Generate a random number between 100 and 999 for the class name
-        const randomNum = Math.floor(Math.random() * 900) + 100;
-        //const className = `Class ${randomNum}`;
-
         const classData = {
-            id: Date.now(), // Use timestamp as unique ID
+            id: Date.now(),
             name: className,
-            color: getRandomColorInt(),
-            grades: [],
-            studyTime: {}
+            color: '#2196F3', // Default color
+            assignments: []
         };
 
-        let classList = getClasses();
-        classList.push(classData);
-
-        // Get current semester and add class to it
-        const currentSemester = getCurrentSemester();
-        if (currentSemester) {
-            const semesters = getSemesters();
-            const semesterIndex = semesters.findIndex(s => s.id === currentSemester.id);
-            if (semesterIndex !== -1) {
-                semesters[semesterIndex].classesInSemester.push(classData.id);
-                await updateSemesters(semesters);
-            }
-        } else {
-            hideSavingOverlay();
-            M.toast({html: 'Please select a semester first'});
-            return;
-        }
-
-        await updateClasses(classList);
-        hideSavingOverlay();
-        M.toast({html: 'New class added successfully!'});
+        const classes = getClasses();
+        classes.push(classData);
+        await updateClasses(classes);
         
-        // Update only the classes display
-        loadClasses();
+        renderClasses();
+        M.toast({html: 'Class added successfully'});
     } catch (error) {
         console.error('Error adding class:', error);
-        hideSavingOverlay();
         M.toast({html: 'Error adding class'});
+    } finally {
+        hideSavingOverlay();
     }
 }
 
