@@ -60,7 +60,10 @@ async function init() {
         document.getElementById('saving-overlay').style.display = 'none';
     } catch (error) {
         console.error('Error during initialization:', error);
-        M.toast({html: 'Error loading data. Please try refreshing the page.'});
+        // Only show error toast if we actually failed to initialize
+        if (!isStateInitialized()) {
+            M.toast({html: 'Error loading data. Please try refreshing the page.'});
+        }
         document.getElementById('saving-overlay').style.display = 'none';
     }
 }
@@ -133,26 +136,12 @@ function initializeMaterialize() {
 
 // Load assignments from Firebase
 async function loadAssignments() {
-    // Wait for assignments to be available in global state
-    let retries = 0;
-    const maxRetries = 10;
-    const retryDelay = 500; // 500ms between retries
-
-    while (retries < maxRetries) {
-        const assignments = getAssignments();
-        console.log('Attempting to load assignments, attempt:', retries + 1);
-        
-        if (assignments !== null && assignments !== undefined) {
-            console.log('Assignments loaded successfully:', assignments);
-            return assignments;
-        }
-
-        // Wait before next retry
-        await new Promise(resolve => setTimeout(resolve, retryDelay));
-        retries++;
+    // Since we now check state initialization in init(), we can just return assignments
+    const assignments = getAssignments();
+    if (assignments === null || assignments === undefined) {
+        throw new Error('No assignments available');
     }
-
-    throw new Error('Failed to load assignments after multiple attempts');
+    return assignments;
 }
 
 // Save assignments to localStorage

@@ -189,9 +189,14 @@ async function loadSemesters() {
             });
         });
 
+        // Hide loading overlay after successful load
+        document.getElementById('saving-overlay').style.display = 'none';
+
     } catch (error) {
         console.error('Error loading semesters:', error);
         M.toast({html: 'Error loading semesters'});
+        // Hide loading overlay on error
+        document.getElementById('saving-overlay').style.display = 'none';
     }
 }
 
@@ -509,22 +514,30 @@ auth.onAuthStateChanged(async user => {
     if (user) {
         console.log('User logged in:', user.uid);
         try {
+            // Show loading overlay
+            document.getElementById('saving-overlay').style.display = 'flex';
+            
             // Wait for global state to be initialized
             await initializeGlobalState();
+            
             // Only load semesters if we have a valid user ID
             if (user.uid) {
                 await loadSemesters();
             } else {
                 console.error('No user ID available');
                 M.toast({html: 'Error: No user ID available'});
+                document.getElementById('saving-overlay').style.display = 'none';
             }
         } catch (error) {
             console.error('Error during initialization:', error);
             M.toast({html: 'Error initializing application'});
+            document.getElementById('saving-overlay').style.display = 'none';
         }
     } else {
         console.log('No user logged in');
         // Clear the semester list when logged out
         semesterList.innerHTML = '<div class="no-semesters">Please log in to view semesters</div>';
+        // Hide loading overlay when not logged in
+        document.getElementById('saving-overlay').style.display = 'none';
     }
 }); 
