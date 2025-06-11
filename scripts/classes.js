@@ -311,18 +311,21 @@ document.addEventListener('DOMContentLoaded', function() {
   
     var items = document.querySelectorAll('.collapsible');
     M.Collapsible.init(items);
-
-    // Initialize the add semester modal
-    const addClassModal = document.getElementById('add-class-modal');
-    if (addClassModal) {
-        const modalInstance = M.Modal.init(addClassModal, {
-            onOpenStart: () => {
-                // name here
+  
+    // connect the addClassButton to the action
+    const addClassButton = document.getElementById('add-class-btn');
+    if (addClassButton) {
+        addClassButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            const modal = document.getElementById('add-class-modal');
+            const instance = M.Modal.getInstance(modal);
+            if (instance) {
+                instance.open();
             }
         });
     }
 
-    // Add event listener for the confirm add semester button
+    // Add event listener for the confirm add class button
     const confirmAddClassBtn = document.getElementById('confirm-add-class');
     if (confirmAddClassBtn) {
         confirmAddClassBtn.addEventListener('click', () => {
@@ -330,12 +333,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if (name) {
                 addClass(name);
-                const modal = M.Modal.getInstance(addClassModal);
-                modal.close();
+                const modal = document.getElementById('add-class-modal');
+                const modalInstance = M.Modal.getInstance(modal);
+                modalInstance.close();
                 // Reset form
                 document.getElementById('add-class-form').reset();
             } else {
-                M.toast({html: 'Please fill in all fields'});
+                M.toast({html: 'Please enter a class name'});
             }
         });
     }
