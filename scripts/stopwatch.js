@@ -4,6 +4,7 @@ const container = document.getElementById("classes-div")
 
 var pendingSeconds = 0
 let currentlyTrackingClass = 0
+let dailyGoalHours = 4; // Default goal
 
 function intToHSL(intColor) {
     // Extract RGB components from the integer
@@ -361,14 +362,43 @@ function max(a, b) {
 
 // setup materialize components
 document.addEventListener('DOMContentLoaded', function() {
-
     var modals = document.querySelectorAll('.modal');
     M.Modal.init(modals);
   
     var items = document.querySelectorAll('.collapsible');
     M.Collapsible.init(items);
   
-    renderClassesStopwatch()
+    // Load saved goal
+    loadDailyGoal();
+    
+    // Setup goal settings
+    const goalSettingsBtn = document.getElementById('goal-settings-btn');
+    const goalSettingsModal = document.getElementById('goal-settings-modal');
+    const saveGoalBtn = document.getElementById('save-goal-btn');
+    const goalHoursInput = document.getElementById('goal-hours');
+    
+    if (goalSettingsBtn && goalSettingsModal) {
+        goalSettingsBtn.addEventListener('click', () => {
+            goalHoursInput.value = dailyGoalHours;
+            const modal = M.Modal.getInstance(goalSettingsModal);
+            modal.open();
+        });
+    }
+    
+    if (saveGoalBtn && goalHoursInput) {
+        saveGoalBtn.addEventListener('click', () => {
+            const hours = parseInt(goalHoursInput.value);
+            if (hours >= 1 && hours <= 24) {
+                saveDailyGoal(hours);
+                const modal = M.Modal.getInstance(goalSettingsModal);
+                modal.close();
+            } else {
+                M.toast({html: 'Please enter a valid number of hours (1-24)'});
+            }
+        });
+    }
+  
+    renderClassesStopwatch();
 });
 
 function calculateStreak(classes) {
@@ -409,21 +439,34 @@ function findMostStudied(classes) {
     return mostStudied;
 }
 
+function loadDailyGoal() {
+    const savedGoal = localStorage.getItem('dailyGoalHours');
+    if (savedGoal) {
+        dailyGoalHours = parseInt(savedGoal);
+    }
+}
+
+function saveDailyGoal(hours) {
+    dailyGoalHours = hours;
+    localStorage.setItem('dailyGoalHours', hours.toString());
+    updateInsights(getClasses());
+}
+
 function calculateDailyGoal(classes) {
     const today = getDate(new Date());
     let totalTime = 0;
-    const goalHours = 4; // 4 hours daily goal
     
     for (const clazz of classes) {
         totalTime += clazz.studyTime[today] || 0;
     }
     
-    const goalSeconds = goalHours * 3600;
+    const goalSeconds = dailyGoalHours * 3600;
     const progress = Math.min(100, (totalTime / goalSeconds) * 100);
     
     return {
         progress: Math.round(progress),
-        totalTime: totalTime
+        totalTime: totalTime,
+        goalHours: dailyGoalHours
     };
 }
 
@@ -440,6 +483,20 @@ function updateInsights(classes) {
     
     // Update daily goal
     const goal = calculateDailyGoal(classes);
-    document.getElementById('goal-progress').style.width = `${goal.progress}%`;
-    document.getElementById('goal-text').textContent = `${goal.progress}%`;
+    const progressBar = document.getElementById('goal-progress');
+    const progressText = document.getElementById('goal-text');
+    
+    progressBar.style.width = `${goal.progress}%`;
+    progressText.textContent = `${goal.progress}%`;
+    
+    // Update progress bar color based on progress
+    if (goal.progress >= 100) {
+        progressBar.style.background = 'linear-gradient(90deg, #4CAF50, #81C784)';
+    } else if (goal.progress >= 75) {
+        progressBar.style.background = 'linear-gradient(90deg, #2196F3, #64B5F6)';
+    } else if (goal.progress >= 50) {
+        progressBar.style.background = 'linear-gradient(90deg, #FFC107, #FFD54F)';
+    } else {
+        progressBar.style.background = 'linear-gradient(90deg, #F44336, #E57373)';
+    }
 }

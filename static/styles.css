@@ -1797,38 +1797,50 @@ input[type="text"].datepicker {
 
 .insight-card {
     background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    padding: 24px;
+    padding-top: 32px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     text-align: center;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.insight-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
 .insight-card h3 {
-    margin: 0 0 15px 0;
-    font-size: 1.1rem;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
     color: #333;
+    font-weight: 500;
 }
 
 .streak-container {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
 }
 
 .streak-count {
-    font-size: 2.5rem;
+    font-size: 3rem;
     font-weight: bold;
     color: #2196F3;
+    text-shadow: 0 2px 4px rgba(33,150,243,0.2);
 }
 
 .streak-label {
     color: #666;
     font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .insight-description {
-    margin: 10px 0 0 0;
+    margin: 12px 0 0 0;
     color: #666;
     font-size: 0.9rem;
 }
@@ -1836,69 +1848,122 @@ input[type="text"].datepicker {
 .most-studied {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 12px;
+    padding: 8px 0;
 }
 
 .subject-name {
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     font-weight: 500;
     color: #333;
 }
 
 .study-time {
     color: #2196F3;
-    font-size: 1.1rem;
+    font-size: 1.2rem;
+    font-weight: 500;
 }
 
 .goal-progress {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
+    position: relative;
+    margin-top: 16px;
 }
 
 .progress-bar {
     width: 100%;
-    height: 8px;
-    background: #eee;
-    border-radius: 4px;
+    height: 10px;
+    background: #f0f0f0;
+    border-radius: 5px;
     overflow: hidden;
+    box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);
 }
 
 .progress {
-    height: 100%;
-    background: #2196F3;
-    border-radius: 4px;
+    width: 0%;
+    height: 10px;
+    background: linear-gradient(90deg, #2196F3, #64B5F6);
+    border-radius: 5px;
     transition: width 0.3s ease;
 }
 
 .goal-text {
-    font-size: 1.1rem;
+    margin-top: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.goal-settings-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    color: #666;
+    padding: 6px;
+    border-radius: 50%;
+    transition: all 0.2s;
+    background: white;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.goal-settings-btn:hover {
+    background-color: rgba(33,150,243,0.1);
+    color: #2196F3;
+}
+
+.goal-settings-btn i {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Modal Styles */
+#goal-settings-modal .modal-content {
+    padding: 24px;
+}
+
+#goal-settings-modal h4 {
     color: #333;
     font-weight: 500;
+    margin-bottom: 24px;
 }
 
-.chart-container.full-width {
-    width: 100%;
-    margin-top: 20px;
+#goal-settings-modal .input-field {
+    margin-top: 24px;
 }
 
-.chart-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
+#goal-settings-modal input[type="number"] {
+    font-size: 1.2rem;
+    text-align: center;
+}
+
+#goal-settings-modal .modal-footer {
+    padding: 16px 24px;
+    border-top: 1px solid #eee;
+}
+
+#goal-settings-modal .btn {
+    margin-left: 12px;
 }
 
 .chart-container {
     flex: 1;
     background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chart-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
 }
 
 .chart-container h3 {
-    margin: 0 0 15px 0;
-    font-size: 1.1rem;
+    margin: 0 0 20px 0;
+    font-size: 1.2rem;
     color: #333;
+    font-weight: 500;
 }
