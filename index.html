@@ -16,37 +16,59 @@
 <body id="classes">
 
 	<!-- NAVBAR -->
-	<nav class="z-depth-0 lighten-4 navbar">
+	<nav class="navbar">
 		<div class="nav-wrapper container">
-			<!--<a href="#" class="brand-logo">
-			<img src="img/logo.svg" style="width: 8px; margin-top: 10px;">
-			</a>-->
-			<ul id="nav-mobile" class="right hide-on-med-and-down nav justify-content-end">
+			<a href="#" data-target="mobile-nav" class="sidenav-trigger"><i class="material-icons">menu</i></a>
+			<ul class="nav">
 				<li class="logged-in">
-				<a href="#" class="nav-link text-white" id="logout">Logout</a>
+					<a href="#" class="nav-link" id="logout">Logout</a>
 				</li>
 				<li class="logged-out">
-				<a href="#" class="nav-link text-white modal-trigger" data-target="modal-login">Login</a>
+					<a href="#" class="nav-link modal-trigger" data-target="modal-login">Login</a>
 				</li>
 				<li class="logged-out">
-				<a href="#" class="nav-link text-white modal-trigger" data-target="modal-signup">Sign up</a>
+					<a href="#" class="nav-link modal-trigger" data-target="modal-signup">Sign up</a>
 				</li>
 				<li class="nav-item logged-in">
-				<a class="nav-link  text-white" href="index.html">Classes</a>
-			</li>
-			<li class="nav-item logged-in"> 
-				<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
-			</li>
-			<li class="nav-item logged-in"> 
-				<a class="nav-link text-white" href="semester.html">Semester</a>
-			</li>
-			<li class="nav-item logged-in">
-				<a class="nav-link text-white" href="assignments.html">Assignments</a>
-			</li>
-			</span>
+					<a class="nav-link" href="index.html">Classes</a>
+				</li>
+				<li class="nav-item logged-in"> 
+					<a class="nav-link" href="stopwatch.html">Stopwatch</a>
+				</li>
+				<li class="nav-item logged-in"> 
+					<a class="nav-link" href="semester.html">Semester</a>
+				</li>
+				<li class="nav-item logged-in">
+					<a class="nav-link" href="assignments.html">Assignments</a>
+				</li>
 			</ul>
 		</div>
 	</nav>
+
+	<!-- Mobile Navigation -->
+	<ul class="sidenav" id="mobile-nav">
+		<li class="logged-in">
+			<a href="#" class="nav-link" id="logout-mobile">Logout</a>
+		</li>
+		<li class="logged-out">
+			<a href="#" class="nav-link modal-trigger" data-target="modal-login">Login</a>
+		</li>
+		<li class="logged-out">
+			<a href="#" class="nav-link modal-trigger" data-target="modal-signup">Sign up</a>
+		</li>
+		<li class="nav-item logged-in">
+			<a class="nav-link" href="index.html">Classes</a>
+		</li>
+		<li class="nav-item logged-in"> 
+			<a class="nav-link" href="stopwatch.html">Stopwatch</a>
+		</li>
+		<li class="nav-item logged-in"> 
+			<a class="nav-link" href="semester.html">Semester</a>
+		</li>
+		<li class="nav-item logged-in">
+			<a class="nav-link" href="assignments.html">Assignments</a>
+		</li>
+	</ul>
 
 	  <!-- SIGN UP MODAL -->
 	<div id="modal-signup" class="modal">

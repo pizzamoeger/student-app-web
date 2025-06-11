@@ -71,3 +71,18 @@ function showSavingOverlay() {
 function hideSavingOverlay() {
     document.getElementById('saving-overlay').style.display = 'none';
 }
+
+// Initialize Materialize components
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modals
+    var modals = document.querySelectorAll('.modal');
+    M.Modal.init(modals);
+
+    // Initialize mobile navigation
+    var sidenav = document.querySelectorAll('.sidenav');
+    M.Sidenav.init(sidenav);
+
+    // Initialize select dropdowns
+    var selects = document.querySelectorAll('select');
+    M.FormSelect.init(selects);
+});
