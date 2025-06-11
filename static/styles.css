@@ -830,4 +830,47 @@ input[type="text"].datepicker {
 /* Modal close button */
 .modal .modal-close {
     color: var(--gray-6);
+}
+
+/* Welcome container styles */
+.welcome-container {
+    text-align: center;
+    padding: 3rem 1rem;
+    max-width: 600px;
+    margin: 2rem auto;
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.welcome-container i.fa-graduation-cap {
+    color: var(--primary-blue);
+    margin-bottom: 1.5rem;
+}
+
+.welcome-container h4 {
+    color: var(--gray-8);
+    margin-bottom: 1rem;
+    font-weight: 500;
+}
+
+.welcome-container p {
+    color: var(--gray-7);
+    font-size: 1.1rem;
+    line-height: 1.5;
+    margin-bottom: 1rem;
+}
+
+.cta-text {
+    font-size: 1.2rem !important;
+    color: var(--primary-blue) !important;
+    font-weight: 500 !important;
+    margin-top: 1rem !important;
+}
+
+@media (max-width: 600px) {
+    .welcome-container {
+        margin: 1rem;
+        padding: 2rem 1rem;
+    }
 }  
