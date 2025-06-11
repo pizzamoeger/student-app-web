@@ -111,48 +111,62 @@ function renderClassCard(clazz) {
     card.style.backgroundColor = intToRGBHex(clazz.color); // set backgroud color
     card.querySelector('h3').textContent = clazz.name // set name
 
-    var secToday = clazz.studyTime[getDate(new Date())]?clazz.studyTime[getDate(new Date())]:0
-    var secWeek = getSecondsWeek(clazz)
-    var secMonth = getSecondsMonth(clazz)
-    card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday?secToday:0)
-    card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek)
-    card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth)
+    // Initialize studyTime if it doesn't exist
+    if (!clazz.studyTime) {
+        clazz.studyTime = {};
+    }
+
+    const today = getDate(new Date());
+    var secToday = clazz.studyTime[today] || 0;
+    var secWeek = getSecondsWeek(clazz);
+    var secMonth = getSecondsMonth(clazz);
+    
+    card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday);
+    card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek);
+    card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth);
 
     let intervalId = null;
     card.querySelector('#start-button').addEventListener("click", async () => {
         if (!intervalId) {
-            if (currentlyTrackingClass) return
-            currentlyTrackingClass = clazz
-            card.querySelector('#start-button').textContent = "Stop"
+            if (currentlyTrackingClass) return;
+            currentlyTrackingClass = clazz;
+            card.querySelector('#start-button').textContent = "Stop";
             intervalId = setInterval(() => {
-                // Replace this with whatever you want to run every second
-                pendingSeconds++
-                card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday++)
-                card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek++)
-                card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth++)
+                pendingSeconds++;
+                secToday++;
+                secWeek++;
+                secMonth++;
+                card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday);
+                card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek);
+                card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth);
             }, 1000);
         } else {
-            showSavingOverlay()
-            currentlyTrackingClass=null
+            showSavingOverlay();
+            currentlyTrackingClass = null;
     
             const classList = getClasses();
             const index = classList.findIndex(c => c.id === clazz.id);
             if (index === -1) return;
     
-            let curSecs = classList[index].studyTime[getDate(new Date())];
-            if (!Number.isInteger(curSecs)) curSecs = 0;
-            classList[index].studyTime[getDate(new Date())] = curSecs+pendingSeconds;
-
-            pendingSeconds=0
-            clearInterval(intervalId)
-            intervalId=null
-            card.querySelector('#start-button').textContent = "Start"
+            // Initialize studyTime if it doesn't exist
+            if (!classList[index].studyTime) {
+                classList[index].studyTime = {};
+            }
             
-            await updateClasses(classList)
-            console.log(classList)
+            const today = getDate(new Date());
+            let curSecs = classList[index].studyTime[today] || 0;
+            classList[index].studyTime[today] = curSecs + pendingSeconds;
 
-            hideSavingOverlay()
-            renderClassesStopwatch()
+            pendingSeconds = 0;
+            clearInterval(intervalId);
+            intervalId = null;
+            card.querySelector('#start-button').textContent = "Start";
+            
+            await updateClasses(classList);
+            console.log(classList);
+
+            hideSavingOverlay();
+            renderClassesStopwatch();
         }
     });
 
