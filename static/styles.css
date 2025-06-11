@@ -968,7 +968,7 @@ input[type="text"].datepicker {
     color: #333;
 }
 
-.remove-class-btn {
+/*.remove-class-btn {
     padding: 6px !important;
     margin-left: 8px;
     color: #999 !important;
@@ -986,7 +986,7 @@ input[type="text"].datepicker {
 .remove-class-btn i {
     font-size: 18px;
     line-height: 18px;
-}
+}*/
 
 /*.classes-list {
     margin-top: 16px;
@@ -1381,11 +1381,24 @@ input[type="text"].datepicker {
 .add-semester-btn, .add-class-btn {
     width: 100%;
     margin-bottom: 1rem;
-    background-color: #2196F3;
+    background-color: var(--primary-blue) !important;
+    color: white !important;
 }
 
 .add-semester-btn:hover, .add-class-btn:hover {
-    background-color: #1976D2;
+    background-color: var(--primary-blue-light) !important;
+}
+
+/* Override Materialize button styles */
+.btn.waves-effect.waves-light.add-class-btn {
+    background-color: var(--primary-blue) !important;
+    color: white !important;
+    width: 100%;
+    margin-bottom: 1rem;
+}
+
+.btn.waves-effect.waves-light.add-class-btn:hover {
+    background-color: var(--primary-blue-light) !important;
 }
 
 .add-semester-btn i, .add-class-btn i {
