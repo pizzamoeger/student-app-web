@@ -421,13 +421,10 @@ function displaySemesterDetails(semester) {
                     ${semesterClasses.length > 0 
                         ? semesterClasses.map(c => {
                             const colorHex = intToRGBHex(c.color);
-                            console.log(colorHex);
                             return `
-                                <div class="class-item" style="border-left: 4px solid ${colorHex}">
-                                    <div class="class-item-content">
-                                        <span class="class-name">${c.name}</span>
-                                    </div>
-                                    <button class="btn-flat remove-class-btn waves-effect" data-id="${c.id}">
+                                <div class="semester-class-tag" style="background-color: ${colorHex}">
+                                    <span class="semester-class-name">${c.name}</span>
+                                    <button class="remove-class-btn" data-id="${c.id}">
                                         <i class="material-icons">close</i>
                                     </button>
                                 </div>

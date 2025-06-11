@@ -1311,6 +1311,7 @@ input[type="text"].datepicker {
     padding: 1rem;
     font-style: italic;
 }
+
 .semester-header, .class-header {
     display: flex;
     justify-content: space-between;
@@ -1450,4 +1451,113 @@ input[type="text"].datepicker {
 
 .add-semester-btn i, .add-class-btn i {
     margin-right: 8px;
+}
+
+.editable-color {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 0;
+}
+
+.editable-color input[type="color"] {
+    -webkit-appearance: none;
+    width: 50px;
+    height: 50px;
+    border: none;
+    border-radius: 8px;
+    padding: 0;
+    cursor: pointer;
+}
+
+.editable-color input[type="color"]::-webkit-color-swatch-wrapper {
+    padding: 0;
+    border-radius: 8px;
+}
+
+.editable-color input[type="color"]::-webkit-color-swatch {
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.editable-color span {
+    color: #666;
+    font-size: 1rem;
+}
+
+.semester-class-item {
+    background: white;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.semester-class-item-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.semester-class-name {
+    font-size: 1rem;
+    color: #333;
+}
+
+.remove-class-btn {
+    color: #666;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.remove-class-btn:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.05) !important;
+}
+
+.classes-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 1rem;
+}
+
+.semester-class-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 12px;
+    border-radius: 16px;
+    color: white;
+    font-size: 0.9rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.semester-class-name {
+    margin-right: 4px;
+}
+
+.remove-class-btn {
+    background: none;
+    border: none;
+    color: white;
+    padding: 0;
+    margin-left: 4px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.8;
+    transition: opacity 0.2s;
+}
+
+.remove-class-btn:hover {
+    opacity: 1;
+}
+
+.remove-class-btn i {
+    font-size: 16px;
 }
