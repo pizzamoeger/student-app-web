@@ -49,47 +49,31 @@ function renderClassCard(clazz) {
 async function loadClasses() {
     try {
         const classes = getClasses();
-        const classesList = document.getElementById('classes-list');
-
-        classesList.innerHTML = `
-            <button class="btn waves-effect waves-light add-class-btn" id="add-class-btn">
-                <i class="material-icons left">add</i>Add Class
-            </button>
-            <div class="classes-list-content">
-                ${!classes || classes.length === 0 ? 
-                    '<div class="no-classes">No classes found. Add your first class!</div>' :
-                    classes.map(clazz => {
-                        // here u could put some vars
-                        return `
-                            <div class="class-item" data-id="${clazz.id}">
-                                <div class="class-item-content">
-                                    <div class="class-item-main">
-                                        <h5>${clazz.name}</h5>
-                                    </div>
-                                </div>
-                                <div class="class-item-footer">
-                                    <button class="btn-flat delete-class-btn" data-id="${clazz.id}">
-                                        <i class="material-icons">delete</i>
-                                    </button>
-                                </div>
-                            </div>
-                        `;
-                    }).join('')
-                }
-            </div>
-        `;
-
-        // Add click event listener for the Add class button
-        const addClassButton = document.getElementById('add-class-btn');
-        if (addClassButton) {
-            addClassButton.addEventListener('click', () => {
-                const modal = document.getElementById('add-class-modal');
-                const instance = M.Modal.getInstance(modal);
-                if (instance) {
-                    instance.open();
-                }
-            });
+        const classesListContent = document.getElementById('classes-list-content');
+        if (!classesListContent) {
+            console.error('Classes list content container not found');
+            return;
         }
+
+        // Only update the content inside classes-list-content, preserving the Add Class button
+        classesListContent.innerHTML = !classes || classes.length === 0 ? 
+            '<div class="no-classes">No classes found. Add your first class!</div>' :
+            classes.map(clazz => {
+                return `
+                    <div class="class-item" data-id="${clazz.id}">
+                        <div class="class-item-content">
+                            <div class="class-item-main">
+                                <h5>${clazz.name}</h5>
+                            </div>
+                        </div>
+                        <div class="class-item-footer">
+                            <button class="btn-flat delete-class-btn" data-id="${clazz.id}">
+                                <i class="material-icons">delete</i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
 
         // Add click event listeners to class items
         document.querySelectorAll('.class-item').forEach(item => {
@@ -250,13 +234,13 @@ function hideSavingOverlay() {
 }
 
 // Add new class
-async function addClass() {
+async function addClass(className) {
     try {
         showSavingOverlay();
         
         // Generate a random number between 100 and 999 for the class name
         const randomNum = Math.floor(Math.random() * 900) + 100;
-        const className = `Class ${randomNum}`;
+        //const className = `Class ${randomNum}`;
 
         const classData = {
             id: Date.now(), // Use timestamp as unique ID
@@ -323,13 +307,35 @@ document.addEventListener('DOMContentLoaded', function() {
   
     var items = document.querySelectorAll('.collapsible');
     M.Collapsible.init(items);
-  
-    // connect the addClassButton to the action
-    const addClassButton = document.getElementById('addClassButton');
-    if (addClassButton) {
-        addClassButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            addClass();
+
+    // Initialize the add semester modal
+    const addClassModal = document.getElementById('add-class-modal');
+    if (addClassModal) {
+        const modalInstance = M.Modal.init(addClassModal, {
+            onOpenStart: () => {
+                // name here
+            }
         });
     }
+
+    // Add event listener for the confirm add semester button
+    const confirmAddClassBtn = document.getElementById('confirm-add-class');
+    if (confirmAddClassBtn) {
+        confirmAddClassBtn.addEventListener('click', () => {
+            const name = document.getElementById('class-name').value;
+
+            if (name) {
+                addClass(name);
+                const modal = M.Modal.getInstance(addClassModal);
+                modal.close();
+                // Reset form
+                document.getElementById('add-class-form').reset();
+            } else {
+                M.toast({html: 'Please fill in all fields'});
+            }
+        });
+    }
+
+    // Initial render of classes
+    renderClasses();
 });

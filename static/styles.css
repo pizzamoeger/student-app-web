@@ -988,9 +988,9 @@ input[type="text"].datepicker {
     line-height: 18px;
 }
 
-.classes-list {
+/*.classes-list {
     margin-top: 16px;
-}  
+}  */
 
 .dashboard {
     padding: 20px;
@@ -1213,11 +1213,11 @@ input[type="text"].datepicker {
     background-color: white;
 }
 
-.classes-list {
+/*.classes-list {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-}
+}*/
 
 .class-item {
     display: flex;
