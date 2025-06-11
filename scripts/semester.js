@@ -1,5 +1,14 @@
 import { getSemesters, updateSemesters, initializeGlobalState, setCurrentSemester, getCurrentSemester, getClasses } from './globalState.js';
 
+// Convert integer color to RGB hex string
+function intToRGBHex(intValue) {
+    const unsigned = (intValue) & 0xFFFFFFFF;
+    const r = (unsigned >> 16) & 0xFF;
+    const g = (unsigned >> 8) & 0xFF;
+    const b = unsigned & 0xFF;
+    return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+}
+
 // DOM Elements
 const semesterList = document.getElementById('semester-list');
 const addSemesterForm = document.getElementById('add-semester-form');
@@ -200,6 +209,26 @@ async function loadSemesters() {
     }
 }
 
+// Calculate semester progress
+function calculateProgress(startDate, endDate) {
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const today = new Date();
+    const totalDuration = end - start;
+    const elapsed = today - start;
+    return Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
+}
+
+// Update progress bar display
+function updateProgressBar(progress) {
+    const progressBar = document.querySelector('.progress-bar');
+    const progressPercentage = document.querySelector('.progress-percentage');
+    if (progressBar && progressPercentage) {
+        progressBar.style.width = `${progress}%`;
+        progressPercentage.textContent = `${Math.round(progress)}%`;
+    }
+}
+
 // Update semester details
 async function updateSemesterDetails(semesterId, updates) {
     try {
@@ -323,10 +352,7 @@ function displaySemesterDetails(semester) {
     const duration = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24)); // Duration in days
     
     // Calculate progress
-    const today = new Date();
-    const totalDuration = endDate - startDate;
-    const elapsed = today - startDate;
-    const progress = Math.min(Math.max((elapsed / totalDuration) * 100, 0), 100);
+    const progress = calculateProgress(semester.start, semester.end);
     
     const currentSemesterBadge = isCurrentSemester ? 
         '<span class="current-semester-badge">Current Semester</span>' :
@@ -393,14 +419,20 @@ function displaySemesterDetails(semester) {
                 </div>
                 <div class="classes-list">
                     ${semesterClasses.length > 0 
-                        ? semesterClasses.map(c => `
-                            <div class="class-item">
-                                <span>${c.name}</span>
-                                <button class="btn-flat remove-class-btn" data-id="${c.id}">
-                                    <i class="material-icons">close</i>
-                                </button>
-                            </div>
-                        `).join('')
+                        ? semesterClasses.map(c => {
+                            const colorHex = intToRGBHex(c.color);
+                            console.log(colorHex);
+                            return `
+                                <div class="class-item" style="border-left: 4px solid ${colorHex}">
+                                    <div class="class-item-content">
+                                        <span class="class-name">${c.name}</span>
+                                    </div>
+                                    <button class="btn-flat remove-class-btn waves-effect" data-id="${c.id}">
+                                        <i class="material-icons">close</i>
+                                    </button>
+                                </div>
+                            `;
+                        }).join('')
                         : '<div class="no-classes">No classes added to this semester yet</div>'}
                 </div>
             </div>
@@ -425,6 +457,10 @@ function displaySemesterDetails(semester) {
     startDateInput.addEventListener('change', () => {
         const newStartDate = startDateInput.value;
         if (newStartDate && newStartDate !== semester.start) {
+            // Update progress bar immediately
+            const newProgress = calculateProgress(newStartDate, semester.end);
+            updateProgressBar(newProgress);
+            // Save the change
             updateSemesterDetails(semester.id, { start: newStartDate });
         }
     });
@@ -432,6 +468,10 @@ function displaySemesterDetails(semester) {
     endDateInput.addEventListener('change', () => {
         const newEndDate = endDateInput.value;
         if (newEndDate && newEndDate !== semester.end) {
+            // Update progress bar immediately
+            const newProgress = calculateProgress(semester.start, newEndDate);
+            updateProgressBar(newProgress);
+            // Save the change
             updateSemesterDetails(semester.id, { end: newEndDate });
         }
     });

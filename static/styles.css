@@ -873,4 +873,64 @@ input[type="text"].datepicker {
         margin: 1rem;
         padding: 2rem 1rem;
     }
+}
+
+/* Semester class items */
+.class-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    margin: 8px 0;
+    background: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12);
+    transition: all 0.2s ease;
+}
+
+.class-item:hover {
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+}
+
+.class-item-content {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+}
+
+.class-color-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+.class-name {
+    font-size: 1rem;
+    color: #333;
+}
+
+.remove-class-btn {
+    padding: 6px !important;
+    margin-left: 8px;
+    color: #999 !important;
+    transition: color 0.2s ease;
+    min-width: 32px;
+    height: 32px;
+    border-radius: 50%;
+}
+
+.remove-class-btn:hover {
+    color: #d32f2f !important;
+    background: rgba(0,0,0,0.05) !important;
+}
+
+.remove-class-btn i {
+    font-size: 18px;
+    line-height: 18px;
+}
+
+.classes-list {
+    margin-top: 16px;
 }  
