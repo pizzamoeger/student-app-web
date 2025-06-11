@@ -101,74 +101,81 @@ function wait(ms) {
 
 function renderClassCard(clazz) {
     const template = document.getElementById("stopwatch-class-blueprint-normal")
-
     const clone = template.content.cloneNode(true);
-    clone.id = "class" + clazz.id; // set id
-
-    const card = clone.querySelector('.card');
-
-    card.classList.add("class-card");
-    card.style.backgroundColor = intToRGBHex(clazz.color); // set backgroud color
-    card.querySelector('h3').textContent = clazz.name // set name
+    const card = clone.querySelector('.class-list-item');
+    
+    // Set the class name
+    const title = card.querySelector('h3');
+    if (title) title.textContent = clazz.name;
 
     // Initialize studyTime if it doesn't exist
     if (!clazz.studyTime) {
         clazz.studyTime = {};
     }
 
+    // Set today's time
     const today = getDate(new Date());
     var secToday = clazz.studyTime[today] || 0;
-    var secWeek = getSecondsWeek(clazz);
-    var secMonth = getSecondsMonth(clazz);
-    
-    card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday);
-    card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek);
-    card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth);
+    const timeDisplay = card.querySelector('.today-time');
+    if (timeDisplay) timeDisplay.textContent = "Today: " + formatSeconds(secToday);
 
+    // Setup timer
     let intervalId = null;
-    card.querySelector('#start-button').addEventListener("click", async () => {
-        if (!intervalId) {
-            if (currentlyTrackingClass) return;
-            currentlyTrackingClass = clazz;
-            card.querySelector('#start-button').textContent = "Stop";
-            intervalId = setInterval(() => {
-                pendingSeconds++;
-                secToday++;
-                secWeek++;
-                secMonth++;
-                card.querySelector('.today-time').textContent = "Today: "+formatSeconds(secToday);
-                card.querySelector('.week-time').textContent = "This week: "+formatSeconds(secWeek);
-                card.querySelector('.month-time').textContent = "This month: "+formatSeconds(secMonth);
-            }, 1000);
-        } else {
-            showSavingOverlay();
-            currentlyTrackingClass = null;
-    
-            const classList = getClasses();
-            const index = classList.findIndex(c => c.id === clazz.id);
-            if (index === -1) return;
-    
-            // Initialize studyTime if it doesn't exist
-            if (!classList[index].studyTime) {
-                classList[index].studyTime = {};
-            }
-            
-            const today = getDate(new Date());
-            let curSecs = classList[index].studyTime[today] || 0;
-            classList[index].studyTime[today] = curSecs + pendingSeconds;
+    const startButton = card.querySelector('#start-button');
+    const startIcon = startButton.querySelector('i');
 
-            pendingSeconds = 0;
-            clearInterval(intervalId);
-            intervalId = null;
-            card.querySelector('#start-button').textContent = "Start";
-            
-            await updateClasses(classList);
-            console.log(classList);
+    if (startButton && startIcon) {
+        // Set the button color to match the class
+        startButton.style.color = intToRGBHex(clazz.color);
 
-            hideSavingOverlay();
-            renderClassesStopwatch();
+        // If this class is currently being tracked, show pause icon
+        if (currentlyTrackingClass && currentlyTrackingClass.id === clazz.id) {
+            startIcon.classList.remove('fa-play');
+            startIcon.classList.add('fa-pause');
         }
-    });
+
+        startButton.addEventListener("click", async () => {
+            if (!intervalId) {
+                if (currentlyTrackingClass) return;
+                currentlyTrackingClass = clazz;
+                startIcon.classList.remove('fa-play');
+                startIcon.classList.add('fa-pause');
+                intervalId = setInterval(() => {
+                    pendingSeconds++;
+                    secToday++;
+                    if (timeDisplay) timeDisplay.textContent = "Today: " + formatSeconds(secToday);
+                }, 1000);
+            } else {
+                showSavingOverlay();
+                currentlyTrackingClass = null;
+        
+                const classList = getClasses();
+                const index = classList.findIndex(c => c.id === clazz.id);
+                if (index === -1) return;
+        
+                // Initialize studyTime if it doesn't exist
+                if (!classList[index].studyTime) {
+                    classList[index].studyTime = {};
+                }
+                
+                const today = getDate(new Date());
+                let curSecs = classList[index].studyTime[today] || 0;
+                classList[index].studyTime[today] = curSecs + pendingSeconds;
+
+                pendingSeconds = 0;
+                clearInterval(intervalId);
+                intervalId = null;
+                startIcon.classList.remove('fa-pause');
+                startIcon.classList.add('fa-play');
+                
+                await updateClasses(classList);
+                console.log(classList);
+
+                hideSavingOverlay();
+                renderClassesStopwatch();
+            }
+        });
+    }
 
     container.appendChild(card);
 }
@@ -243,6 +250,7 @@ export function renderClassesStopwatch(callback) {
     );
 
     displayClasses(semesterClasses);
+    updateInsights(semesterClasses);
 
     const noClassesMessage = document.getElementById('no-classes-message');
     const chartsContainer = document.getElementById('charts-container');
@@ -362,3 +370,76 @@ document.addEventListener('DOMContentLoaded', function() {
   
     renderClassesStopwatch()
 });
+
+function calculateStreak(classes) {
+    let streak = 0;
+    const today = new Date();
+    let currentDate = new Date(today);
+    
+    while (true) {
+        const dateStr = getDate(currentDate);
+        let hasStudyTime = false;
+        
+        for (const clazz of classes) {
+            if (clazz.studyTime && clazz.studyTime[dateStr] > 0) {
+                hasStudyTime = true;
+                break;
+            }
+        }
+        
+        if (!hasStudyTime) break;
+        streak++;
+        currentDate.setDate(currentDate.getDate() - 1);
+    }
+    
+    return streak;
+}
+
+function findMostStudied(classes) {
+    let mostStudied = { name: '-', time: 0 };
+    const today = getDate(new Date());
+    
+    for (const clazz of classes) {
+        const studyTime = clazz.studyTime[today] || 0;
+        if (studyTime > mostStudied.time) {
+            mostStudied = { name: clazz.name, time: studyTime };
+        }
+    }
+    
+    return mostStudied;
+}
+
+function calculateDailyGoal(classes) {
+    const today = getDate(new Date());
+    let totalTime = 0;
+    const goalHours = 4; // 4 hours daily goal
+    
+    for (const clazz of classes) {
+        totalTime += clazz.studyTime[today] || 0;
+    }
+    
+    const goalSeconds = goalHours * 3600;
+    const progress = Math.min(100, (totalTime / goalSeconds) * 100);
+    
+    return {
+        progress: Math.round(progress),
+        totalTime: totalTime
+    };
+}
+
+function updateInsights(classes) {
+    // Update streak
+    const streak = calculateStreak(classes);
+    document.getElementById('streak-count').textContent = streak;
+    
+    // Update most studied
+    const mostStudied = findMostStudied(classes);
+    const mostStudiedEl = document.getElementById('most-studied');
+    mostStudiedEl.querySelector('.subject-name').textContent = mostStudied.name;
+    mostStudiedEl.querySelector('.study-time').textContent = formatSeconds(mostStudied.time);
+    
+    // Update daily goal
+    const goal = calculateDailyGoal(classes);
+    document.getElementById('goal-progress').style.width = `${goal.progress}%`;
+    document.getElementById('goal-text').textContent = `${goal.progress}%`;
+}

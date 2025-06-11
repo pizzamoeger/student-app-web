@@ -61,7 +61,7 @@ async function loadClasses() {
             classes.map(clazz => {
                 const backgroundColor = intToRGBHex(clazz.color) || '#2196F3';
                 return `
-                    <div class="class-item" data-id="${clazz.id}" style="background-color: ${backgroundColor}">
+                    <div class="class-item" data-id="${clazz.id}" style="border-top: 4px solid ${backgroundColor}">
                         <div class="class-item-content">
                             <div class="class-item-main">
                                 <h5>${clazz.name}</h5>

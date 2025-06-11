@@ -7,6 +7,7 @@
 	
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
 	<link rel="stylesheet" type="text/css" href="static/styles.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
 	<title>stopwatch</title>
 	<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -46,50 +47,80 @@
 	</nav>
 
 	<div class="logged-in">
-		<div class="abschnitt center">
-			<h1>Stopwatch</h1>
-		</div>
-		<div class="main-container">
-			<!-- LEFT SIDE -->
-			<div class="left-panel">
-				<h2>Classes</h2>
-				<div id="classes-div"></div>
+		<div class="dashboard">
+			<div class="dashboard-header">
+				<h4>Stopwatch</h4>
 			</div>
-	
-			<!-- RIGHT SIDE -->
-			<div class="right-panel">
-				<h2>Insights</h2>
-				<div id="insights-container">
+
+			<div class="dashboard-content">
+				<div class="classes-list" id="classes-list">
+					<h5>Classes</h5>
+					<div id="classes-div"></div>
+				</div>
+				<div class="class-details" id="insights-container">
+					<h5>Insights</h5>
 					<div id="no-classes-message" style="display: none; text-align: center; padding: 40px;">
 						<h4>No Classes in This Semester</h4>
 						<p>Add some classes to your semester to start tracking study time!</p>
 					</div>
 					<div id="charts-container">
-				<div class="chart-row">
-					<div class="chart-container">
-					  <h3>Today</h3>
+						<div class="chart-row">
+							<div class="chart-container">
+								<h3>Today</h3>
 								<div class="no-data-message" id="no-data-day" style="display: none; text-align: center; padding: 20px;">
 									<p>No study time recorded today.<br>Start studying to see today's distribution!</p>
 								</div>
-					  <canvas id="dayPieChart" width="200" height="200"></canvas>
-					</div>
-					<div class="chart-container">
-					  <h3>This Week</h3>
+								<canvas id="dayPieChart" width="200" height="200"></canvas>
+							</div>
+							<div class="chart-container">
+								<h3>This Week</h3>
 								<div class="no-data-message" id="no-data-week" style="display: none; text-align: center; padding: 20px;">
 									<p>No study time recorded this week.<br>Keep studying to see your weekly progress!</p>
 								</div>
-					  <canvas id="weekPieChart" width="200" height="200"></canvas>
-					</div>
-					<div class="chart-container">
-					  <h3>This Month</h3>
+								<canvas id="weekPieChart" width="200" height="200"></canvas>
+							</div>
+							<div class="chart-container">
+								<h3>This Month</h3>
 								<div class="no-data-message" id="no-data-month" style="display: none; text-align: center; padding: 20px;">
 									<p>No study time recorded this month.<br>Study consistently to track your monthly distribution!</p>
 								</div>
-					  <canvas id="monthPieChart" width="200" height="200"></canvas>
+								<canvas id="monthPieChart" width="200" height="200"></canvas>
+							</div>
+						</div>
+						<div class="insights-grid">
+							<div class="insight-card">
+								<h3>Study Streak</h3>
+								<div class="streak-container">
+									<div class="streak-count" id="streak-count">0</div>
+									<div class="streak-label">days</div>
+								</div>
+								<p class="insight-description">Keep your streak going!</p>
+							</div>
+							<div class="insight-card">
+								<h3>Most Studied</h3>
+								<div class="most-studied" id="most-studied">
+									<div class="subject-name">-</div>
+									<div class="study-time">0h 0m</div>
+								</div>
+							</div>
+							<div class="insight-card">
+								<h3>Daily Goal</h3>
+								<div class="goal-progress">
+									<div class="progress-bar">
+										<div class="progress" id="goal-progress" style="width: 0%"></div>
+									</div>
+									<div class="goal-text" id="goal-text">0%</div>
+								</div>
+							</div>
+						</div>
+						<div class="chart-row">
+							<div class="chart-container full-width">
+								<h3>Study Time Trend</h3>
+								<canvas id="trendChart" height="200"></canvas>
 							</div>
 						</div>
 					</div>
-				  </div>			  
+				</div>
 			</div>
 		</div>
 	</div>
@@ -105,12 +136,14 @@
 
 	<!-- Templates -->
 	<template id="stopwatch-class-blueprint-normal">
-		<div class="card">
-			<h3>Title</h3>
-			<button id="start-button">Start</button>
-			<p class="today-time">Seconds today: </p>
-			<p class="week-time">Seconds this week: </p>
-			<p class="month-time">Seconds this month: </p>
+		<div class="class-list-item">
+			<div class="class-info">
+				<h3>Title</h3>
+				<p class="today-time">Today: 00:00:00</p>
+			</div>
+			<button id="start-button" class="btn-floating btn-small waves-effect waves-light">
+				<i class="fas fa-play"></i>
+			</button>
 		</div>
 	</template>
 
