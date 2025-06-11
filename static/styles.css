@@ -1598,3 +1598,87 @@ input[type="text"].datepicker {
     font-size: 14px;
     line-height: 1;
 }
+
+.current-semester-badge {
+    background-color: #4CAF50;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: 160px;
+    justify-content: center;
+    position: relative;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    height: 32px;
+    box-sizing: border-box;
+}
+
+.current-semester-badge:hover {
+    opacity: 0.9;
+}
+
+.current-semester-badge::before {
+    content: 'star';
+    font-family: 'Material Icons';
+    font-size: 16px;
+    position: absolute;
+    left: 12px;
+}
+
+.current-semester-badge span {
+    margin-left: 24px;
+    text-align: center;
+    flex: 1;
+}
+
+.set-current-btn {
+    background-color: #2196F3 !important;
+    color: white;
+    padding: 6px 12px;
+    border-radius: 16px;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    width: 160px;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    transition: opacity 0.2s;
+    position: relative;
+    height: 32px;
+    box-sizing: border-box;
+}
+
+.set-current-btn:hover {
+    opacity: 0.9;
+}
+
+.set-current-btn i {
+    font-size: 16px;
+    position: absolute;
+    left: 12px;
+}
+
+.set-current-btn span {
+    margin-left: 24px;
+    text-align: center;
+    flex: 1;
+}
+
+.semester-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.semester-header-right {
+    display: flex;
+    align-items: center;
+}

@@ -110,10 +110,15 @@ async function loadSemesters() {
         const semesterList = document.getElementById('semester-list');
         const currentSemester = getCurrentSemester();
         
-        // Sort semesters by start date (newest first)
-        const sortedSemesters = semesters ? [...semesters].sort((a, b) => 
-            new Date(b.start) - new Date(a.start)
-        ) : [];
+        // Sort semesters: current semester first, then by start date (newest first)
+        const sortedSemesters = semesters ? [...semesters].sort((a, b) => {
+            // If a is current semester, it comes first
+            if (currentSemester && a.id === currentSemester.id) return -1;
+            // If b is current semester, it comes first
+            if (currentSemester && b.id === currentSemester.id) return 1;
+            // Otherwise sort by start date
+            return new Date(b.start) - new Date(a.start);
+        }) : [];
 
         semesterList.innerHTML = `
             <button class="btn waves-effect waves-light add-semester-btn" id="add-semester-btn">
@@ -197,6 +202,11 @@ async function loadSemesters() {
                 }
             });
         });
+
+        // If there's a current semester, display its details
+        if (currentSemester) {
+            displaySemesterDetails(currentSemester);
+        }
 
         // Hide loading overlay after successful load
         document.getElementById('saving-overlay').style.display = 'none';
@@ -355,9 +365,8 @@ function displaySemesterDetails(semester) {
     const progress = calculateProgress(semester.start, semester.end);
     
     const currentSemesterBadge = isCurrentSemester ? 
-        '<span class="current-semester-badge">Current Semester</span>' :
-        '<button class="btn waves-effect waves-light set-current-btn" id="set-current-btn">' +
-        '<i class="material-icons left">star</i>Set as Current Semester</button>';
+        '<span class="current-semester-badge"><span>Current Semester</span></span>' :
+        '<button class="set-current-btn" id="set-current-btn"><i class="material-icons">star</i><span>Set as Current</span></button>';
     
     // Get all classes and filter for classes in this semester
     const allClasses = getClasses();
@@ -376,7 +385,9 @@ function displaySemesterDetails(semester) {
                     <h4 id="semester-name" contenteditable="true">${semester.name}</h4>
                     <i class="material-icons edit-icon">edit</i>
                 </div>
-                ${currentSemesterBadge}
+                <div class="semester-header-right">
+                    ${currentSemesterBadge}
+                </div>
             </div>
             <div class="semester-info">
                 <div class="info-item">
@@ -496,10 +507,25 @@ function displaySemesterDetails(semester) {
     // Add event listener for the "Set as Current" button if it exists
     const setCurrentBtn = document.getElementById('set-current-btn');
     if (setCurrentBtn) {
-        setCurrentBtn.addEventListener('click', () => {
-            setCurrentSemester(semester);
+        setCurrentBtn.addEventListener('click', async () => {
+            await setCurrentSemester(semester);
             M.toast({html: `${semester.name} set as current semester`});
-            loadSemesters(); // Reload the list to update the current semester indicator
+            // Update the UI immediately
+            const semesterHeader = document.querySelector('.semester-header-right');
+            if (semesterHeader) {
+                semesterHeader.innerHTML = '<span class="current-semester-badge"><span>Current Semester</span></span>';
+            }
+            // Update the semester list to show the current indicator
+            loadSemesters();
+        });
+    }
+
+    // Add event listener for the current semester badge
+    const currentBadge = document.querySelector('.current-semester-badge');
+    if (currentBadge) {
+        currentBadge.addEventListener('click', async () => {
+            await setCurrentSemester(semester);
+            M.toast({html: `${semester.name} is already the current semester`});
         });
     }
 }
