@@ -417,7 +417,7 @@ function displaySemesterDetails(semester) {
                         </select>
                     </div>
                 </div>
-                <div class="classes-list">
+                <div class="">
                     ${semesterClasses.length > 0 
                         ? semesterClasses.map(c => {
                             const colorHex = intToRGBHex(c.color);

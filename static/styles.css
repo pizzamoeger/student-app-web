@@ -1529,15 +1529,18 @@ input[type="text"].datepicker {
 .semester-class-tag {
     display: inline-flex;
     align-items: center;
-    padding: 6px 12px;
-    border-radius: 16px;
+    padding: 4px 10px;
+    border-radius: 12px;
     color: white;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    line-height: 1;
+    height: 24px;
+    gap: 4px;
 }
 
 .semester-class-name {
-    margin-right: 4px;
+    line-height: 1;
 }
 
 .remove-class-btn {
@@ -1545,13 +1548,15 @@ input[type="text"].datepicker {
     border: none;
     color: white;
     padding: 0;
-    margin-left: 4px;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
     opacity: 0.8;
     transition: opacity 0.2s;
+    height: 16px;
+    width: 16px;
+    margin: 0;
 }
 
 .remove-class-btn:hover {
@@ -1559,5 +1564,6 @@ input[type="text"].datepicker {
 }
 
 .remove-class-btn i {
-    font-size: 16px;
+    font-size: 14px;
+    line-height: 1;
 }
