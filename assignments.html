@@ -53,38 +53,40 @@
 		<div class="dashboard-header">
 			<div class="header-content">
 				<h4>Assignments</h4>
-				<button id="add-assignment-btn" class="btn waves-effect waves-light">
-					<i class="fas fa-plus"></i> Add Assignment
-				</button>
 			</div>
-			<div class="filters-row">
-				<div class="input-field">
-					<select id="semester-filter">
-						<option value="all">All Semesters</option>
-					</select>
-					<label>Semester</label>
-				</div>
-				<div class="input-field">
-					<select id="class-filter">
-						<option value="all">All Classes</option>
-					</select>
-					<label>Class</label>
-				</div>
-				<div class="input-field">
-					<select id="status-filter">
-						<option value="all">All Status</option>
-						<option value="overdue">Overdue</option>
-						<option value="pending">Pending</option>
-						<option value="in-progress">In Progress</option>
-						<option value="completed">Completed</option>
-					</select>
-					<label>Status</label>
-				</div>
+		</div>
+		<div class="filters-row">
+			<div class="input-field">
+				<select id="semester-filter">
+					<option value="all">All Semesters</option>
+				</select>
+				<label>Semester</label>
+			</div>
+			<div class="input-field">
+				<select id="class-filter">
+					<option value="all">All Classes</option>
+				</select>
+				<label>Class</label>
+			</div>
+			<div class="input-field">
+				<select id="status-filter">
+					<option value="all">All Status</option>
+					<option value="overdue">Overdue</option>
+					<option value="pending">Pending</option>
+					<option value="in-progress">In Progress</option>
+					<option value="completed">Completed</option>
+				</select>
+				<label>Status</label>
 			</div>
 		</div>
 
 		<!-- Assignments List -->
 		<div class="assignments-wrapper">
+			<div class="assignments-header">
+				<button id="add-assignment-btn" class="btn waves-effect waves-light">
+					<i class="fas fa-plus"></i> Add Assignment
+				</button>
+			</div>
 			<div id="no-assignments-message" class="center-align" style="display: none;">
 				<i class="fas fa-tasks fa-3x"></i>
 				<h5>No Assignments Yet</h5>

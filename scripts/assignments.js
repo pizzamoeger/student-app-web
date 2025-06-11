@@ -297,9 +297,9 @@ function updateClassFilter() {
             classFilter.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
         });
     } else {
-        const semester = getSemesters().find(sem => sem.id === selectedSemester);
+        const semester = getSemesters().find(sem => Number(sem.id) === Number(selectedSemester));
         if (semester) {
-            classes.filter(cls => semester.classesInSemester.includes(cls.id))
+            classes.filter(cls => semester.classesInSemester.includes(Number(cls.id)))
                 .forEach(cls => {
                     classFilter.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
                 });
@@ -314,19 +314,30 @@ function updateClassFilter() {
 function populateClassSelect() {
     const classSelect = document.getElementById('assignment-class');
     const classes = getClasses();
+    const currentSemester = getCurrentSemester();
     console.log('Available classes:', classes);
+    console.log('Current semester:', currentSemester);
     
     // Clear existing options
     classSelect.innerHTML = '<option value="">Choose a class</option>';
     
-    // Add class options
-    if (classes && classes.length > 0) {
-        classes.forEach(cls => {
-            console.log('Adding class option:', cls);
-            classSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
-        });
+    // Add class options only from current semester
+    if (classes && classes.length > 0 && currentSemester) {
+        const currentSemesterClasses = classes.filter(cls => 
+            currentSemester.classesInSemester.includes(cls.id)
+        );
+        
+        if (currentSemesterClasses.length > 0) {
+            currentSemesterClasses.forEach(cls => {
+                console.log('Adding class option:', cls);
+                classSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
+            });
+        } else {
+            console.log('No classes in current semester');
+            classSelect.innerHTML += '<option value="" disabled>No classes in current semester</option>';
+        }
     } else {
-        console.log('No classes found');
+        console.log('No classes found or no current semester');
         classSelect.innerHTML += '<option value="" disabled>No classes available</option>';
     }
     
@@ -356,11 +367,11 @@ export function renderAssignments() {
     if (selectedClass !== 'all') {
         filteredAssignments = filteredAssignments.filter(a => Number(a.classId) === Number(selectedClass));
     } else if (selectedSemester !== 'all') {
-        const semester = getSemesters().find(sem => sem.id === selectedSemester);
+        const semester = getSemesters().find(sem => Number(sem.id) === Number(selectedSemester));
         if (semester) {
             filteredAssignments = filteredAssignments.filter(a => {
                 const assignmentClass = classes.find(c => Number(c.id) === Number(a.classId));
-                return assignmentClass && semester.classesInSemester.includes(assignmentClass.id);
+                return assignmentClass && semester.classesInSemester.includes(Number(assignmentClass.id));
             });
         }
     }
@@ -488,7 +499,8 @@ function editAssignment(id) {
 async function deleteAssignment(id) {
     if (confirm('Are you sure you want to delete this assignment?')) {
         const assignments = getAssignments();
-        const newAssignments = assignments.filter(a => a.id !== id);
+        const numId = Number(id);
+        const newAssignments = assignments.filter(a => Number(a.id) !== numId);
         await updateAssignments(newAssignments);
         renderAssignments();
         M.toast({html: 'Assignment deleted successfully'});
