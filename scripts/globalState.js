@@ -258,6 +258,8 @@ export function setUID(newUid) {
 
 // Firebase functions for events
 export async function saveEvent(event) {
+    console.log('Saving event:', event);
+    
     // Parse the event if it's a string
     const eventData = typeof event === 'string' ? JSON.parse(event) : event;
     
@@ -266,35 +268,95 @@ export async function saveEvent(event) {
         globalState.events = [];
     }
     
-    // If the event has an ID, update existing event
+    // If editing, remove the old event and all its repetitions
     if (eventData.id) {
-        const index = globalState.events.findIndex(e => e.id === eventData.id);
-        if (index !== -1) {
-            globalState.events[index] = eventData;
+        const oldEvent = globalState.events.find(e => e.id === eventData.id);
+        if (oldEvent && oldEvent.repeated) {
+            // Remove all events that are part of this repeated series
+            globalState.events = globalState.events.filter(e => 
+                !(e.repeated && e.repeatedId === oldEvent.repeatedId)
+            );
+        } else {
+            // Remove just the single event
+            globalState.events = globalState.events.filter(e => e.id !== eventData.id);
         }
+    }
+
+    // Handle repeated events
+    if (eventData.repeated === 'true' && eventData.repeatUntil) {
+        console.log('Creating repeated events');
+        const repeatedId = Date.now().toString();
+        const newEvents = [];
+        
+        // Parse dates
+        const startDate = new Date(eventData.date);
+        const endDate = new Date(eventData.repeatUntil);
+        console.log('Start date:', startDate, 'End date:', endDate);
+        
+        // Create events for each week until repeatUntil
+        let currentDate = new Date(startDate);
+        while (currentDate <= endDate) {
+            console.log('Creating event for date:', currentDate);
+            // Create a new event for this week
+            const newEvent = {
+                ...eventData,
+                id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+                date: new Date(currentDate).toISOString(),
+                repeated: true,
+                repeatedId: repeatedId,
+                startTime: eventData.startTime,
+                endTime: eventData.endTime
+            };
+            newEvents.push(newEvent);
+            
+            // Move to next week
+            currentDate = new Date(currentDate);
+            currentDate.setDate(currentDate.getDate() + 7);
+        }
+
+        console.log('Created repeated events:', newEvents);
+        // Add all new events
+        globalState.events.push(...newEvents);
     } else {
-        // Add new event
-        eventData.id = Date.now(); // Generate a unique ID
-        globalState.events.push(eventData);
+        console.log('Creating single event');
+        // Add single event
+        const newEvent = {
+            ...eventData,
+            id: eventData.id || Date.now().toString(),
+            date: new Date(eventData.date).toISOString(),
+            repeated: false,
+            startTime: eventData.startTime,
+            endTime: eventData.endTime
+        };
+        globalState.events.push(newEvent);
     }
     
     // Save to database
-    const docRef = db.collection("user").doc(globalState.uid);
-    const docSnap = await docRef.get();
-    
-    if (!docSnap.exists) {
-        console.log("No such document exists. Creating it...");
-        await docRef.set({
-            events: JSON.stringify(globalState.events),
-        });
-    } else {
-        console.log("Document exists. Updating it...");
-        await docRef.update({
-            events: JSON.stringify(globalState.events),
-        });
+    try {
+        console.log('Saving events to database:', globalState.events);
+        const docRef = db.collection("user").doc(globalState.uid);
+        const docSnap = await docRef.get();
+        
+        if (!docSnap.exists) {
+            console.log("No such document exists. Creating it...");
+            await docRef.set({
+                events: JSON.stringify(globalState.events),
+            });
+        } else {
+            console.log("Document exists. Updating it...");
+            await docRef.update({
+                events: JSON.stringify(globalState.events),
+            });
+        }
+        
+        // Re-initialize global state to ensure everything is in sync
+        await initializeGlobalState();
+        
+        return eventData;
+    } catch (error) {
+        console.error("Error saving event to database:", error);
+        throw error;
     }
-    
-    return eventData;
 }
 
 export async function deleteEvent(event) {
