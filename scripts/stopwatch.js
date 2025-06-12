@@ -136,24 +136,24 @@ function renderClassCard(clazz) {
         }
 
         startButton.addEventListener("click", async () => {
-            if (!intervalId) {
+        if (!intervalId) {
                 if (currentlyTrackingClass) return;
                 currentlyTrackingClass = clazz;
                 startIcon.classList.remove('fa-play');
                 startIcon.classList.add('fa-pause');
-                intervalId = setInterval(() => {
+            intervalId = setInterval(() => {
                     pendingSeconds++;
                     secToday++;
                     if (timeDisplay) timeDisplay.textContent = "Today: " + formatSeconds(secToday);
-                }, 1000);
-            } else {
+            }, 1000);
+        } else {
                 showSavingOverlay();
                 currentlyTrackingClass = null;
-        
-                const classList = getClasses();
-                const index = classList.findIndex(c => c.id === clazz.id);
-                if (index === -1) return;
-        
+    
+            const classList = getClasses();
+            const index = classList.findIndex(c => c.id === clazz.id);
+            if (index === -1) return;
+    
                 // Initialize studyTime if it doesn't exist
                 if (!classList[index].studyTime) {
                     classList[index].studyTime = {};
@@ -168,14 +168,14 @@ function renderClassCard(clazz) {
                 intervalId = null;
                 startIcon.classList.remove('fa-pause');
                 startIcon.classList.add('fa-play');
-                
+            
                 await updateClasses(classList);
                 console.log(classList);
 
                 hideSavingOverlay();
                 renderClassesStopwatch();
-            }
-        });
+        }
+    });
     }
 
     container.appendChild(card);

@@ -2164,3 +2164,13 @@ input[type="text"].datepicker {
     font-size: 0.8em;
     opacity: 0.9;
 }
+
+.modal .btn:hover {
+    background-color: var(--gray-6) !important;
+}
+
+#event-modal .btn:hover,
+#event-modal .btn-flat:hover {
+    background-color: #6C757D !important;
+    color: white !important;
+}

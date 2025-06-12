@@ -386,7 +386,7 @@ function displaySemesterDetails(semester) {
                     <i class="material-icons edit-icon">edit</i>
                 </div>
                 <div class="semester-header-right">
-                    ${currentSemesterBadge}
+                ${currentSemesterBadge}
                 </div>
             </div>
             <div class="semester-info">
@@ -436,9 +436,9 @@ function displaySemesterDetails(semester) {
                                 <div class="semester-class-tag" style="background-color: ${colorHex}">
                                     <span class="semester-class-name">${c.name}</span>
                                     <button class="remove-class-btn" data-id="${c.id}">
-                                        <i class="material-icons">close</i>
-                                    </button>
-                                </div>
+                                    <i class="material-icons">close</i>
+                                </button>
+                            </div>
                             `;
                         }).join('')
                         : '<div class="no-classes">No classes added to this semester yet</div>'}

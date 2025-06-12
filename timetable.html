@@ -160,20 +160,24 @@
 		</div>
 	</div>
 
-	<!-- Add Event Modal -->
-	<div id="add-event-modal" class="modal">
+	<!-- Add/Edit Event Modal -->
+	<div id="event-modal" class="modal">
 		<div class="modal-content">
-			<h4>Add Event</h4>
-			<form id="add-event-form">
-				<div class="input-field">
-					<input type="text" id="event-title" required>
-					<label for="event-title">Event Title</label>
+			<h4 id="modal-title">Add Event</h4>
+			<form id="event-form">
+				<div class="row">
+					<div class="input-field col s12">
+						<input type="text" id="event-title" required>
+						<label for="event-title">Event Title</label>
+					</div>
 				</div>
-				<div class="input-field">
-					<select id="event-class" required>
-						<option value="" disabled selected>Choose a class</option>
-					</select>
-					<label>Class</label>
+				<div class="row">
+					<div class="input-field col s12">
+						<select id="event-class" required>
+							<option value="" disabled selected>Choose a class</option>
+						</select>
+						<label>Class</label>
+					</div>
 				</div>
 				<div class="row">
 					<div class="input-field col s6">
@@ -218,7 +222,7 @@
 				<div class="row">
 					<div class="input-field col s12">
 						<select id="event-day" required>
-							<option value="" disabled selected>Choose day</option>
+							<option value="" disabled selected>Choose a day</option>
 							<option value="monday">Monday</option>
 							<option value="tuesday">Tuesday</option>
 							<option value="wednesday">Wednesday</option>
@@ -230,11 +234,12 @@
 						<label>Day</label>
 					</div>
 				</div>
+				<div class="modal-footer">
+					<button type="button" id="delete-event-btn" class="btn-flat red-text" style="display: none;">Delete</button>
+					<button type="button" id="cancel-event-btn" class="btn-flat">Cancel</button>
+					<button type="submit" id="save-event-btn" class="btn blue">Save</button>
+				</div>
 			</form>
-		</div>
-		<div class="modal-footer">
-			<button class="modal-close waves-effect waves-light btn-flat">Cancel</button>
-			<button class="waves-effect waves-light btn" id="save-event-btn">Save Event</button>
 		</div>
 	</div>
 

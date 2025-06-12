@@ -5,6 +5,8 @@ currentWeekStart.setHours(0, 0, 0, 0);
 // Set to Monday of current week
 currentWeekStart.setDate(currentWeekStart.getDate() - currentWeekStart.getDay() + 1);
 
+let currentEditingEvent = null;
+
 function formatDate(date) {
     return date.toLocaleDateString('en-US', { 
         month: 'long', 
@@ -157,6 +159,7 @@ function renderEvent(event) {
     eventElement.className = 'schedule-event';
     eventElement.style.backgroundColor = intToRGBHex(classColor);
     eventElement.style.color = 'white';
+    eventElement.dataset.event = JSON.stringify(eventData); // Store event data for editing
     
     // Calculate height based on duration
     const duration = endHour - startHour;
@@ -169,7 +172,61 @@ function renderEvent(event) {
         <div class="event-class">${eventClass ? eventClass.name : ''}</div>
     `;
     
+    // Add click handler for editing
+    eventElement.addEventListener('click', () => openEditModal(eventData));
+    
     startSlot.appendChild(eventElement);
+}
+
+function openEditModal(event) {
+    currentEditingEvent = event;
+    
+    // Set modal title
+    document.getElementById('modal-title').textContent = 'Edit Event';
+    
+    // Populate form fields
+    document.getElementById('event-title').value = event.name;
+    document.getElementById('event-class').value = event.classesItemId;
+    document.getElementById('event-start').value = event.startHour;
+    document.getElementById('event-end').value = event.endHour;
+    
+    // Set the day based on the event date
+    const eventDate = new Date(event.date);
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const day = days[eventDate.getDay()];
+    document.getElementById('event-day').value = day;
+    
+    // Show delete button
+    document.getElementById('delete-event-btn').style.display = 'inline-block';
+    
+    // Update Materialize select elements
+    M.updateTextFields();
+    M.FormSelect.init(document.querySelectorAll('select'));
+    
+    // Open modal
+    const modal = M.Modal.getInstance(document.getElementById('event-modal'));
+    modal.open();
+}
+
+function openAddModal() {
+    currentEditingEvent = null;
+    
+    // Set modal title
+    document.getElementById('modal-title').textContent = 'Add Event';
+    
+    // Reset form
+    document.getElementById('event-form').reset();
+    
+    // Hide delete button
+    document.getElementById('delete-event-btn').style.display = 'none';
+    
+    // Update Materialize select elements
+    M.updateTextFields();
+    M.FormSelect.init(document.querySelectorAll('select'));
+    
+    // Open modal
+    const modal = M.Modal.getInstance(document.getElementById('event-modal'));
+    modal.open();
 }
 
 async function renderTimetable() {
@@ -300,13 +357,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event button
     document.getElementById('add-event-btn').addEventListener('click', () => {
-        populateClassSelect(); // Populate classes when modal opens
-        const modal = M.Modal.getInstance(document.getElementById('add-event-modal'));
-        modal.open();
+        populateClassSelect();
+        openAddModal();
     });
     
-    // Save event
-    document.getElementById('save-event-btn').addEventListener('click', async () => {
+    // Cancel button
+    document.getElementById('cancel-event-btn').addEventListener('click', () => {
+        const modal = M.Modal.getInstance(document.getElementById('event-modal'));
+        modal.close();
+    });
+    
+    // Delete button
+    document.getElementById('delete-event-btn').addEventListener('click', async () => {
+        if (currentEditingEvent) {
+            try {
+                await deleteEvent(currentEditingEvent);
+                const modal = M.Modal.getInstance(document.getElementById('event-modal'));
+                modal.close();
+                await renderTimetable();
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                M.toast({html: 'Error deleting event. Please try again.'});
+            }
+        }
+    });
+    
+    // Save event form
+    document.getElementById('event-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
         const title = document.getElementById('event-title').value;
         const classSelect = document.getElementById('event-class');
         const selectedOption = classSelect.options[classSelect.selectedIndex];
@@ -329,8 +408,13 @@ document.addEventListener('DOMContentLoaded', function() {
                 date: eventDate.toISOString().split('T')[0],
                 startHour: startHour,
                 endHour: endHour,
-                createdAt: new Date().toISOString() // Use ISO string instead of serverTimestamp
+                createdAt: new Date().toISOString()
             };
+            
+            // If editing, add the original event's ID
+            if (currentEditingEvent) {
+                eventData.id = currentEditingEvent.id;
+            }
             
             // Convert the entire event data to a JSON string
             const eventJsonString = JSON.stringify(eventData);
@@ -339,9 +423,9 @@ document.addEventListener('DOMContentLoaded', function() {
             try {
                 await saveEvent(eventJsonString);
                 // Reset form and close modal
-                document.getElementById('add-event-form').reset();
+                document.getElementById('event-form').reset();
                 M.updateTextFields();
-                const modal = M.Modal.getInstance(document.getElementById('add-event-modal'));
+                const modal = M.Modal.getInstance(document.getElementById('event-modal'));
                 modal.close();
                 // Refresh the timetable to show the new event
                 await renderTimetable();
