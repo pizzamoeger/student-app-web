@@ -1580,42 +1580,31 @@ input[type="text"].datepicker {
 .semester-class-tag {
     display: inline-flex;
     align-items: center;
-    padding: 4px 10px;
-    border-radius: 12px;
-    color: white;
-    font-size: 0.85rem;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-    line-height: 1;
-    height: 24px;
-    gap: 4px;
+    padding: 4px 8px;
+    border-radius: 16px;
+    margin: 4px;
+    font-size: 14px;
 }
 
 .semester-class-name {
-    line-height: 1;
+    margin-right: 4px;
 }
 
 .remove-class-btn {
     background: none;
     border: none;
-    color: white;
     padding: 0;
+    margin: 0;
     cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    opacity: 0.8;
-    transition: opacity 0.2s;
-    height: 16px;
-    width: 16px;
-    margin: 0;
+    height: 20px;
+    width: 20px;
 }
 
-.remove-class-btn:hover {
-    opacity: 1;
-}
-
-.remove-class-btn i {
-    font-size: 14px;
+.remove-class-btn .material-icons {
+    font-size: 18px;
     line-height: 1;
 }
 

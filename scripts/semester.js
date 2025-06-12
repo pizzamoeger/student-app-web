@@ -9,6 +9,20 @@ function intToRGBHex(intValue) {
     return '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
 }
 
+// Calculate relative luminance and determine text color
+function getTextColor(hexColor) {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+    
+    // Calculate relative luminance
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+    
+    // Return black for light colors, white for dark colors
+    return luminance > 0.5 ? '#000000' : '#FFFFFF';
+}
+
 // DOM Elements
 const semesterList = document.getElementById('semester-list');
 const addSemesterForm = document.getElementById('add-semester-form');
@@ -432,13 +446,14 @@ function displaySemesterDetails(semester) {
                     ${semesterClasses.length > 0 
                         ? semesterClasses.map(c => {
                             const colorHex = intToRGBHex(c.color);
+                            const textColor = getTextColor(colorHex);
                             return `
                                 <div class="semester-class-tag" style="background-color: ${colorHex}">
-                                    <span class="semester-class-name">${c.name}</span>
+                                    <span class="semester-class-name" style="color: ${textColor}">${c.name}</span>
                                     <button class="remove-class-btn" data-id="${c.id}">
-                                    <i class="material-icons">close</i>
-                                </button>
-                            </div>
+                                        <i class="material-icons" style="color: ${textColor}">close</i>
+                                    </button>
+                                </div>
                             `;
                         }).join('')
                         : '<div class="no-classes">No classes added to this semester yet</div>'}
