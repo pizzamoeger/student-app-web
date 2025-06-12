@@ -11,6 +11,8 @@ const globalState = {
     classes: [],
     // All assignments
     assignments: [],
+    // All events
+    events: [],
     // Loading state
     isLoading: false,
     // Error state
@@ -92,6 +94,17 @@ export async function initializeGlobalState() {
             }
         }
 
+        // Parse and set events
+        if (data.events) {
+            try {
+                globalState.events = JSON.parse(data.events);
+                console.log('Parsed events:', globalState.events);
+            } catch (err) {
+                console.error("Error parsing events data:", err);
+                globalState.events = [];
+            }
+        }
+
         // Set current semester if it exists in the data
         if (data.currentSemesterId) {
             const currentSemester = globalState.semesters.find(s => s.id === data.currentSemesterId);
@@ -133,6 +146,11 @@ export function getUserData() {
 
 export function getAssignments() {
     return globalState.assignments;
+}
+
+export function getEvents() {
+    console.log('Getting events from global state:', globalState.events);
+    return globalState.events;
 }
 
 // Setters
@@ -239,46 +257,20 @@ export function setUID(newUid) {
 }
 
 // Firebase functions for events
-export async function getEvents() {
-    try {
-        const user = auth.currentUser;
-        if (!user) return null;
-        
-        const eventsRef = db.collection('events').where('userId', '==', user.uid);
-        const snapshot = await eventsRef.get();
-        
-        if (snapshot.empty) {
-            return [];
-        }
-        
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-    } catch (error) {
-        console.error('Error getting events:', error);
-        return null;
-    }
-}
-
-export async function saveEvent(eventData) {
-    try {
-        const user = auth.currentUser;
-        if (!user) {
-            throw new Error('User not authenticated');
-        }
-        
-        // Add user ID to event data
-        eventData.userId = user.uid;
-        
-        // Save to Firestore
-        await db.collection('events').add(eventData);
-        
-        // Return true to indicate success
-        return true;
-    } catch (error) {
-        console.error('Error saving event:', error);
-        throw error;
+export async function saveEvent(event) {
+    const events = globalState.events.push(event);
+    const docRef = db.collection("user").doc(globalState.uid);
+    const docSnap = await docRef.get();
+    if (!docSnap.exists) {
+        console.log("No such document exists. Creating it...");
+        await docRef.set({
+            events: event,
+        });
+    } else {
+        console.log("Document exists. Updating it...");
+        await docRef.update({
+            events: event,
+        });
     }
 }
 

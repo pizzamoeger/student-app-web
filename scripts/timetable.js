@@ -1,4 +1,4 @@
-import { getClasses, getCurrentSemester, getEvents, saveEvent, intToRGBHex } from './globalState.js';
+import { getClasses, getCurrentSemester, getEvents, saveEvent, intToRGBHex, initializeGlobalState, isStateInitialized } from './globalState.js';
 
 let currentWeekStart = new Date();
 currentWeekStart.setHours(0, 0, 0, 0);
@@ -116,20 +116,46 @@ function createScheduleSlots() {
 }
 
 function renderEvent(event) {
-    const dayColumn = document.querySelector(`.day-column[data-day="${event.day}"]`);
-    if (!dayColumn) return;
+    console.log('Rendering event:', event);
     
-    const startHour = parseInt(event.startTime.split(':')[0]);
-    const endHour = parseInt(event.endTime.split(':')[0]);
+    // Parse event if it's a string
+    const eventData = typeof event === 'string' ? JSON.parse(event) : event;
+    
+    // Get the class color from the classesItemId
+    const classes = getClasses();
+    const eventClass = classes.find(cls => cls.id === eventData.classesItemId);
+    const classColor = eventClass ? eventClass.color : 0x2196F3; // Default blue if class not found
+    
+    // Convert date to day of week
+    const eventDate = new Date(eventData.date);
+    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const day = days[eventDate.getDay()];
+    
+    console.log('Event date:', eventData.date, 'Day:', day); // Debug log
+    
+    const dayColumn = document.querySelector(`.day-column[data-day="${day}"]`);
+    if (!dayColumn) {
+        console.log('Day column not found for:', day);
+        return;
+    }
+    
+    // Get start and end hours from the event
+    const startHour = eventData.startHour || 9;
+    const endHour = eventData.endHour || 10;
+    
+    console.log('Start hour:', startHour, 'End hour:', endHour);
     
     // Find the slot that matches the event's start time
     const startSlot = dayColumn.querySelector(`.schedule-slot[data-time="${startHour}:00"]`);
-    if (!startSlot) return;
+    if (!startSlot) {
+        console.log('Start slot not found for time:', startHour);
+        return;
+    }
     
     // Create event element
     const eventElement = document.createElement('div');
     eventElement.className = 'schedule-event';
-    eventElement.style.backgroundColor = intToRGBHex(event.classColor);
+    eventElement.style.backgroundColor = intToRGBHex(classColor);
     eventElement.style.color = 'white';
     
     // Calculate height based on duration
@@ -138,9 +164,9 @@ function renderEvent(event) {
     
     // Add event details
     eventElement.innerHTML = `
-        <div class="event-title">${event.title}</div>
-        <div class="event-time">${event.startTime} - ${event.endTime}</div>
-        <div class="event-class">${event.className}</div>
+        <div class="event-title">${eventData.name}</div>
+        <div class="event-time">${startHour}:00 - ${endHour}:00</div>
+        <div class="event-class">${eventClass ? eventClass.name : ''}</div>
     `;
     
     startSlot.appendChild(eventElement);
@@ -170,11 +196,22 @@ async function renderTimetable() {
     createScheduleSlots();
     
     // Get and render events
-    const events = await getEvents();
+    const events = getEvents();
+    console.log('Fetched events:', events); // Debug log
+    
     if (events) {
-        events.forEach(event => {
-            renderEvent(event);
-        });
+        // Convert single event to array if needed
+        const eventsArray = Array.isArray(events) ? events : [events];
+        
+        if (eventsArray.length > 0) {
+            eventsArray.forEach(event => {
+                renderEvent(event);
+            });
+        } else {
+            console.log('No events found or events array is empty'); // Debug log
+        }
+    } else {
+        console.log('No events found or events is null'); // Debug log
     }
 }
 
@@ -206,30 +243,6 @@ function getDayIndex(day) {
     return days.indexOf(day.toLowerCase());
 }
 
-function updateButtonColors(classColor) {
-    if (!classColor) return;
-    
-    const color = intToRGBHex(classColor);
-    
-    // Update add event button
-    const addButton = document.getElementById('add-event-btn');
-    if (addButton) {
-        addButton.style.backgroundColor = color;
-    }
-    
-    // Update save event button
-    const saveButton = document.getElementById('save-event-btn');
-    if (saveButton) {
-        saveButton.style.backgroundColor = color;
-    }
-    
-    // Update login/signup buttons
-    const loginButton = document.getElementById('login-btn');
-    const signupButton = document.getElementById('signup-btn');
-    if (loginButton) loginButton.style.backgroundColor = color;
-    if (signupButton) signupButton.style.backgroundColor = color;
-}
-
 function populateClassSelect() {
     const classSelect = document.getElementById('event-class');
     const classes = getClasses();
@@ -246,7 +259,7 @@ function populateClassSelect() {
         
         if (currentSemesterClasses.length > 0) {
             currentSemesterClasses.forEach(cls => {
-                classSelect.innerHTML += `<option value="${cls.id}" data-color="${cls.color}">${cls.name}</option>`;
+                classSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
             });
         } else {
             classSelect.innerHTML += '<option value="" disabled>No classes in current semester</option>';
@@ -257,13 +270,6 @@ function populateClassSelect() {
     
     // Reinitialize select
     M.FormSelect.init(classSelect);
-    
-    // Add change event listener to update button colors
-    classSelect.addEventListener('change', () => {
-        const selectedOption = classSelect.options[classSelect.selectedIndex];
-        const classColor = selectedOption.dataset.color;
-        updateButtonColors(classColor);
-    });
 }
 
 // Event Listeners
@@ -274,6 +280,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     const selects = document.querySelectorAll('select');
     M.FormSelect.init(selects);
+    
+    // Set all buttons to blue
+    const buttons = document.querySelectorAll('.btn');
+    buttons.forEach(button => {
+        button.style.backgroundColor = '#2196F3';
+    });
     
     // Week navigation
     document.getElementById('prev-week').addEventListener('click', async () => {
@@ -299,35 +311,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const classSelect = document.getElementById('event-class');
         const selectedOption = classSelect.options[classSelect.selectedIndex];
         const classId = classSelect.value;
-        const className = selectedOption.text;
-        const classColor = selectedOption.dataset.color;
-        const startTime = document.getElementById('event-start').value;
-        const endTime = document.getElementById('event-end').value;
+        const startHour = parseInt(document.getElementById('event-start').value);
+        const endHour = parseInt(document.getElementById('event-end').value);
         const day = document.getElementById('event-day').value;
         
-        if (title && classId && startTime && endTime && day) {
+        if (title && classId && startHour && endHour && day) {
+            // Calculate the date based on the selected day and current week
+            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+            const dayIndex = days.indexOf(day.toLowerCase());
+            const eventDate = new Date(currentWeekStart);
+            eventDate.setDate(eventDate.getDate() + dayIndex);
+            
+            // Create the event data object
             const eventData = {
-                title,
-                classId,
-                className,
-                classColor,
-                startTime,
-                endTime,
-                day,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                name: title,
+                classesItemId: parseInt(classId),
+                date: eventDate.toISOString().split('T')[0],
+                startHour: startHour,
+                endHour: endHour,
+                createdAt: new Date().toISOString() // Use ISO string instead of serverTimestamp
             };
             
+            // Convert the entire event data to a JSON string
+            const eventJsonString = JSON.stringify(eventData);
+            console.log('Saving event as JSON string:', eventJsonString);
+            
             try {
-                await saveEvent(eventData);
+                await saveEvent(eventJsonString);
                 // Reset form and close modal
                 document.getElementById('add-event-form').reset();
                 M.updateTextFields();
                 const modal = M.Modal.getInstance(document.getElementById('add-event-modal'));
                 modal.close();
+                // Refresh the timetable to show the new event
+                await renderTimetable();
             } catch (error) {
                 console.error('Error saving event:', error);
                 M.toast({html: 'Error saving event. Please try again.'});
             }
+        } else {
+            M.toast({html: 'Please fill in all fields'});
         }
     });
 });
@@ -335,8 +358,14 @@ document.addEventListener('DOMContentLoaded', function() {
 // Listen for auth state changes
 firebase.auth().onAuthStateChanged(async (user) => {
     if (user) {
-        // User is signed in, render the timetable
-        await renderTimetable();
+        try {
+            // Initialize global state first
+            await initializeGlobalState();
+            // Then render the timetable
+            await renderTimetable();
+        } catch (error) {
+            console.error('Error initializing state or rendering timetable:', error);
+        }
     } else {
         // User is signed out, clear the timetable
         const scheduleSlots = document.querySelector('.schedule-slots');
