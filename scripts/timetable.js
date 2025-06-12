@@ -1,4 +1,4 @@
-import { getClasses, getCurrentSemester, getEvents, saveEvent, intToRGBHex, initializeGlobalState, isStateInitialized } from './globalState.js';
+import { getClasses, getCurrentSemester, getEvents, saveEvent, intToRGBHex, initializeGlobalState, isStateInitialized, deleteEvent } from './globalState.js';
 
 let currentWeekStart = new Date();
 currentWeekStart.setHours(0, 0, 0, 0);
@@ -157,8 +157,7 @@ function renderEvent(event) {
     // Create event element
     const eventElement = document.createElement('div');
     eventElement.className = 'schedule-event';
-    eventElement.style.backgroundColor = intToRGBHex(classColor);
-    eventElement.style.color = 'white';
+    eventElement.style.borderLeftColor = intToRGBHex(classColor);
     eventElement.dataset.event = JSON.stringify(eventData); // Store event data for editing
     
     // Calculate height based on duration
@@ -174,6 +173,16 @@ function renderEvent(event) {
     
     // Add click handler for editing
     eventElement.addEventListener('click', () => openEditModal(eventData));
+    
+    // Check for overlapping events
+    const existingEvents = startSlot.querySelectorAll('.schedule-event');
+    if (existingEvents.length > 0) {
+        // Mark all events in this slot as overlapping
+        existingEvents.forEach(existingEvent => {
+            existingEvent.classList.add('overlapping');
+        });
+        eventElement.classList.add('overlapping');
+    }
     
     startSlot.appendChild(eventElement);
 }
@@ -371,6 +380,7 @@ document.addEventListener('DOMContentLoaded', function() {
     document.getElementById('delete-event-btn').addEventListener('click', async () => {
         if (currentEditingEvent) {
             try {
+                showSavingOverlay();
                 await deleteEvent(currentEditingEvent);
                 const modal = M.Modal.getInstance(document.getElementById('event-modal'));
                 modal.close();
@@ -378,6 +388,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error deleting event:', error);
                 M.toast({html: 'Error deleting event. Please try again.'});
+            } finally {
+                hideSavingOverlay();
             }
         }
     });
@@ -421,6 +433,7 @@ document.addEventListener('DOMContentLoaded', function() {
             console.log('Saving event as JSON string:', eventJsonString);
             
             try {
+                showSavingOverlay();
                 await saveEvent(eventJsonString);
                 // Reset form and close modal
                 document.getElementById('event-form').reset();
@@ -432,6 +445,8 @@ document.addEventListener('DOMContentLoaded', function() {
             } catch (error) {
                 console.error('Error saving event:', error);
                 M.toast({html: 'Error saving event. Please try again.'});
+            } finally {
+                hideSavingOverlay();
             }
         } else {
             M.toast({html: 'Please fill in all fields'});

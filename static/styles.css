@@ -371,51 +371,50 @@ canvas {
 	.chart-row { justify-content: flex-start; }
   }
   
-  #saving-overlay {
-	position: fixed;
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	background: rgba(255, 255, 255, 0.9);
-	display: none;
-	justify-content: center;
-	align-items: center;
-	z-index: 9999;
-  }
-  
-  .saving-message {
-	text-align: center;
-	background: white;
-	padding: 20px;
-	border-radius: 8px;
-	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	gap: 15px;
-  }
-  
-  .saving-message span {
-	font-size: 1.2rem;
-	color: var(--gray-7);
-  }
-  
-  .spinner {
-	width: 40px;
-	height: 40px;
-	border: 4px solid var(--gray-3);
-	border-top: 4px solid var(--primary-blue);
-	border-radius: 50%;
-	animation: spin 1s linear infinite;
-	margin: 0 auto;
-  }
-  
-  @keyframes spin {
-	0% { transform: rotate(0deg); }
-	100% { transform: rotate(360deg); }
-  }
-  
+#saving-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+#saving-overlay .saving-message {
+    text-align: center;
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+#saving-overlay .saving-message span {
+    font-size: 1.2rem;
+    color: #666;
+}
+
+#saving-overlay .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 /* Auth visibility rules */
 .logged-in {
     display: none !important;
@@ -2055,7 +2054,26 @@ input[type="text"].datepicker {
 }
 
 #add-event-btn {
-    margin-left: 16px;
+    transition: all 0.3s ease;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#add-event-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    background-color: #6C757D !important;
+}
+
+#add-event-btn i {
+    font-size: 1.5rem;
+    line-height: 1;
 }
 
 .schedule-grid {
@@ -2143,26 +2161,49 @@ input[type="text"].datepicker {
 
 .schedule-event {
     position: absolute;
-    left: 2px;
-    right: 2px;
-    padding: 4px;
+    width: calc(100% - 10px);
+    margin: 5px;
+    padding: 8px;
     border-radius: 4px;
-    font-size: 0.9em;
-    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.2s ease;
     z-index: 1;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    background-color: white !important;
+    color: #333 !important;
+    border: 1px solid #e0e0e0;
+    border-left: 4px solid;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
 
-.schedule-event .event-title {
-    font-weight: bold;
-    margin-bottom: 2px;
+.schedule-event.overlapping {
+    width: calc(50% - 10px);
+    opacity: 0.95;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
-.schedule-event .event-time,
-.schedule-event .event-class {
-    font-size: 0.8em;
-    opacity: 0.9;
+.schedule-event.overlapping:nth-child(odd) {
+    left: 5px;
+}
+
+.schedule-event.overlapping:nth-child(even) {
+    right: 5px;
+}
+
+.schedule-event:hover {
+    transform: scale(1.02);
+    z-index: 2;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+    border-color: #bdbdbd;
+}
+
+.event-title {
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.event-time, .event-class {
+    font-size: 0.85em;
+    color: #666;
 }
 
 .modal .btn:hover {

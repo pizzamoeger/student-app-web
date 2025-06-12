@@ -258,18 +258,71 @@ export function setUID(newUid) {
 
 // Firebase functions for events
 export async function saveEvent(event) {
-    const events = globalState.events.push(event);
+    // Parse the event if it's a string
+    const eventData = typeof event === 'string' ? JSON.parse(event) : event;
+    
+    // Initialize events array if it doesn't exist
+    if (!Array.isArray(globalState.events)) {
+        globalState.events = [];
+    }
+    
+    // If the event has an ID, update existing event
+    if (eventData.id) {
+        const index = globalState.events.findIndex(e => e.id === eventData.id);
+        if (index !== -1) {
+            globalState.events[index] = eventData;
+        }
+    } else {
+        // Add new event
+        eventData.id = Date.now(); // Generate a unique ID
+        globalState.events.push(eventData);
+    }
+    
+    // Save to database
     const docRef = db.collection("user").doc(globalState.uid);
     const docSnap = await docRef.get();
+    
     if (!docSnap.exists) {
         console.log("No such document exists. Creating it...");
         await docRef.set({
-            events: event,
+            events: JSON.stringify(globalState.events),
         });
     } else {
         console.log("Document exists. Updating it...");
         await docRef.update({
-            events: event,
+            events: JSON.stringify(globalState.events),
+        });
+    }
+    
+    return eventData;
+}
+
+export async function deleteEvent(event) {
+    // Parse the event if it's a string
+    const eventData = typeof event === 'string' ? JSON.parse(event) : event;
+    
+    // Initialize events array if it doesn't exist
+    if (!Array.isArray(globalState.events)) {
+        globalState.events = [];
+        return;
+    }
+    
+    // Remove the event from the array
+    globalState.events = globalState.events.filter(e => e.id !== eventData.id);
+    
+    // Save to database
+    const docRef = db.collection("user").doc(globalState.uid);
+    const docSnap = await docRef.get();
+    
+    if (!docSnap.exists) {
+        console.log("No such document exists. Creating it...");
+        await docRef.set({
+            events: JSON.stringify(globalState.events),
+        });
+    } else {
+        console.log("Document exists. Updating it...");
+        await docRef.update({
+            events: JSON.stringify(globalState.events),
         });
     }
 }
