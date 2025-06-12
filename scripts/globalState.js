@@ -237,3 +237,57 @@ export function isStateInitialized() {
 export function setUID(newUid) {
     globalState.uid = newUid
 }
+
+// Firebase functions for events
+export async function getEvents() {
+    try {
+        const user = auth.currentUser;
+        if (!user) return null;
+        
+        const eventsRef = db.collection('events').where('userId', '==', user.uid);
+        const snapshot = await eventsRef.get();
+        
+        if (snapshot.empty) {
+            return [];
+        }
+        
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    } catch (error) {
+        console.error('Error getting events:', error);
+        return null;
+    }
+}
+
+export async function saveEvent(eventData) {
+    try {
+        const user = auth.currentUser;
+        if (!user) {
+            throw new Error('User not authenticated');
+        }
+        
+        // Add user ID to event data
+        eventData.userId = user.uid;
+        
+        // Save to Firestore
+        await db.collection('events').add(eventData);
+        
+        // Return true to indicate success
+        return true;
+    } catch (error) {
+        console.error('Error saving event:', error);
+        throw error;
+    }
+}
+
+// Helper function to convert integer color to RGB hex
+export function intToRGBHex(color) {
+    if (!color) return '#2196F3'; // Default blue if no color
+    
+    const r = (color >> 16) & 0xFF;
+    const g = (color >> 8) & 0xFF;
+    const b = color & 0xFF;
+    return `#${r.toString(16).padStart(2, '0')}${g.toString(16).padStart(2, '0')}${b.toString(16).padStart(2, '0')}`;
+}

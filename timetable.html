@@ -73,7 +73,7 @@
 		<div class="dashboard">
 			<div class="dashboard-header">
 				<h4>Timetable</h4>
-				<button class="btn-floating btn-small waves-effect waves-light blue" id="add-event-btn">
+				<button class="btn-floating btn-small waves-effect waves-light" id="add-event-btn">
 					<i class="material-icons">add</i>
 				</button>
 			</div>
@@ -89,8 +89,19 @@
 							<i class="material-icons">chevron_right</i>
 						</button>
 					</div>
-					<div class="timetable-grid" id="timetable-grid">
-						<!-- Days will be populated here -->
+					<div class="schedule-grid">
+						<div class="time-column">
+							<div class="time-header"></div>
+							<!-- Time slots will be populated here -->
+						</div>
+						<div class="days-container">
+							<div class="days-header">
+								<!-- Day headers will be populated here -->
+							</div>
+							<div class="schedule-slots">
+								<!-- Schedule slots will be populated here -->
+							</div>
+						</div>
 					</div>
 				</div>
 			</div>
@@ -106,6 +117,49 @@
 		</div>
 	</div>
 
+	<div id="saving-overlay">
+		<div class="saving-message">
+			<span>Loading...</span>
+			<div class="spinner"></div>
+		</div>
+	</div>
+
+	<!-- SIGN UP MODAL -->
+	<div id="modal-signup" class="modal">
+		<div class="modal-content">
+			<h4>Sign up</h4><br />
+			<form id="signup-form">
+				<div class="input-field">
+					<input type="email" id="signup-email" required />
+					<label for="signup-email">Email address</label>
+				</div>
+				<div class="input-field">
+					<input type="password" id="signup-password" required />
+					<label for="signup-password">Choose password</label>
+				</div>
+				<button class="btn z-depth-0" id="signup-btn">Sign up</button>
+			</form>
+		</div>
+	</div>
+
+	<!-- LOGIN MODAL -->
+	<div id="modal-login" class="modal">
+		<div class="modal-content">
+			<h4>Login</h4><br />
+			<form id="login-form">
+				<div class="input-field">
+					<input type="email" id="login-email" required />
+					<label for="login-email">Email address</label>
+				</div>
+				<div class="input-field">
+					<input type="password" id="login-password" required />
+					<label for="login-password">Your password</label>
+				</div>
+				<button class="btn z-depth-0" id="login-btn">Login</button>
+			</form>
+		</div>
+	</div>
+
 	<!-- Add Event Modal -->
 	<div id="add-event-modal" class="modal">
 		<div class="modal-content">
@@ -116,8 +170,10 @@
 					<label for="event-title">Event Title</label>
 				</div>
 				<div class="input-field">
-					<input type="text" id="event-class" required>
-					<label for="event-class">Class</label>
+					<select id="event-class" required>
+						<option value="" disabled selected>Choose a class</option>
+					</select>
+					<label>Class</label>
 				</div>
 				<div class="row">
 					<div class="input-field col s6">
@@ -148,7 +204,7 @@
 		</div>
 		<div class="modal-footer">
 			<button class="modal-close waves-effect waves-light btn-flat">Cancel</button>
-			<button class="waves-effect waves-light btn blue" id="save-event-btn">Save Event</button>
+			<button class="waves-effect waves-light btn" id="save-event-btn">Save Event</button>
 		</div>
 	</div>
 
