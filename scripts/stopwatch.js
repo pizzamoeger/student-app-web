@@ -489,14 +489,6 @@ function updateInsights(classes) {
     progressBar.style.width = `${goal.progress}%`;
     progressText.textContent = `${goal.progress}%`;
     
-    // Update progress bar color based on progress
-    if (goal.progress >= 100) {
-        progressBar.style.background = 'linear-gradient(90deg, #4CAF50, #81C784)';
-    } else if (goal.progress >= 75) {
-        progressBar.style.background = 'linear-gradient(90deg, #2196F3, #64B5F6)';
-    } else if (goal.progress >= 50) {
-        progressBar.style.background = 'linear-gradient(90deg, #FFC107, #FFD54F)';
-    } else {
-        progressBar.style.background = 'linear-gradient(90deg, #F44336, #E57373)';
-    }
+    // Update progress bar to use Materialize blue
+    progressBar.className = 'progress-bar blue';
 }

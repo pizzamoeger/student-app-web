@@ -426,7 +426,7 @@ function displaySemesterDetails(semester) {
             <div class="semester-progress">
                 <div class="progress-label">Semester Progress</div>
                 <div class="progress-bar-container">
-                    <div class="progress-bar" style="width: ${progress}%"></div>
+                    <div class="progress-bar blue" style="width: ${progress}%"></div>
                 </div>
                 <div class="progress-percentage">${Math.round(progress)}%</div>
             </div>
@@ -452,8 +452,8 @@ function displaySemesterDetails(semester) {
                                     <span class="semester-class-name" style="color: ${textColor}">${c.name}</span>
                                     <button class="remove-class-btn" data-id="${c.id}">
                                         <i class="material-icons" style="color: ${textColor}">close</i>
-                                    </button>
-                                </div>
+                                </button>
+                            </div>
                             `;
                         }).join('')
                         : '<div class="no-classes">No classes added to this semester yet</div>'}

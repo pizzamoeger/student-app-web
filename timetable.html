@@ -15,25 +15,6 @@
 	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-	<nav class="navbar navbar-dark dark sticky-top">
-		<div class="dark p-4">
-			<ul class="nav justify-content-end">
-				<li class="nav-item">
-					<a class="nav-link text-white" href="index.html">Classes</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-white" href="stopwatch.html">Stopwatch</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link disabled" href="timetable.html">Timteable</a>
-				</li>
-				<li class="nav-item">
-					<a class="nav-link text-white" href="assignments.html">Assignments</a>
-				</li>
-			</ul>
-		</div>
-	</nav>
-
 	<title>Timetable</title>
 </head>
 
@@ -73,9 +54,6 @@
 		<div class="dashboard">
 			<div class="dashboard-header">
 				<h4>Timetable</h4>
-				<button class="btn-floating btn-small waves-effect waves-light" id="add-event-btn">
-					<i class="material-icons">add</i>
-				</button>
 			</div>
 
 			<div class="dashboard-content">
@@ -87,6 +65,9 @@
 						<h5 id="week-display">Week of May 1, 2024</h5>
 						<button class="btn-flat" id="next-week">
 							<i class="material-icons">chevron_right</i>
+						</button>
+						<button class="btn-floating btn-small waves-effect waves-light blue" id="add-event-btn">
+							<i class="material-icons">add</i>
 						</button>
 					</div>
 					<div class="schedule-grid">
