@@ -117,6 +117,47 @@ function createScheduleSlots() {
     });
 }
 
+function showEventDetails(event) {
+    const eventData = typeof event === 'string' ? JSON.parse(event) : event;
+    const classes = getClasses();
+    const eventClass = classes.find(cls => cls.id === eventData.classesItemId);
+    
+    // Format the date
+    const eventDate = new Date(eventData.date);
+    const formattedDate = eventDate.toLocaleDateString('en-US', { 
+        weekday: 'long',
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+    });
+    
+    // Handle both old and new time formats
+    let timeDisplay;
+    if (eventData.startTime && eventData.endTime) {
+        // New format (HH:mm)
+        timeDisplay = `${eventData.startTime} - ${eventData.endTime}`;
+    } else {
+        // Old format (hour only)
+        const startHour = eventData.startHour || 9;
+        const endHour = eventData.endHour || 10;
+        timeDisplay = `${startHour}:00 - ${endHour}:00`;
+    }
+    
+    // Set the modal content
+    document.getElementById('event-details-title').textContent = eventData.name;
+    document.getElementById('event-details-time').textContent = timeDisplay;
+    document.getElementById('event-details-date').textContent = formattedDate;
+    document.getElementById('event-details-class').textContent = eventClass ? eventClass.name : 'No class';
+    
+    // Store the event data for the edit and delete buttons
+    const detailsModal = document.getElementById('event-details-modal');
+    detailsModal.dataset.event = JSON.stringify(eventData);
+    
+    // Open the modal
+    const modal = M.Modal.getInstance(detailsModal);
+    modal.open();
+}
+
 function renderEvent(event) {
     console.log('Rendering event:', event);
     
@@ -141,11 +182,28 @@ function renderEvent(event) {
         return;
     }
     
-    // Get start and end hours from the event
-    const startHour = eventData.startHour || 9;
-    const endHour = eventData.endHour || 10;
+    // Handle both old and new time formats
+    let startHour, startMinute, endHour, endMinute, startTimeStr, endTimeStr;
     
-    console.log('Start hour:', startHour, 'End hour:', endHour);
+    if (eventData.startTime && eventData.endTime) {
+        // New format (HH:mm)
+        const startTime = eventData.startTime.split(':');
+        const endTime = eventData.endTime.split(':');
+        startHour = parseInt(startTime[0]);
+        startMinute = parseInt(startTime[1]);
+        endHour = parseInt(endTime[0]);
+        endMinute = parseInt(endTime[1]);
+        startTimeStr = eventData.startTime;
+        endTimeStr = eventData.endTime;
+    } else {
+        // Old format (hour only)
+        startHour = eventData.startHour || 9;
+        endHour = eventData.endHour || 10;
+        startMinute = 0;
+        endMinute = 0;
+        startTimeStr = `${startHour}:00`;
+        endTimeStr = `${endHour}:00`;
+    }
     
     // Find the slot that matches the event's start time
     const startSlot = dayColumn.querySelector(`.schedule-slot[data-time="${startHour}:00"]`);
@@ -160,19 +218,29 @@ function renderEvent(event) {
     eventElement.style.borderLeftColor = intToRGBHex(classColor);
     eventElement.dataset.event = JSON.stringify(eventData); // Store event data for editing
     
-    // Calculate height based on duration
-    const duration = endHour - startHour;
-    eventElement.style.height = `${duration * 60}px`; // 60px per hour
+    // Calculate height based on duration in minutes
+    const durationMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
+    eventElement.style.height = `${durationMinutes}px`; // 1px per minute
     
-    // Add event details
-    eventElement.innerHTML = `
-        <div class="event-title">${eventData.name}</div>
-        <div class="event-time">${startHour}:00 - ${endHour}:00</div>
-        <div class="event-class">${eventClass ? eventClass.name : ''}</div>
-    `;
+    // Calculate top offset based on start minute
+    eventElement.style.top = `${startMinute}px`;
     
-    // Add click handler for editing
-    eventElement.addEventListener('click', () => openEditModal(eventData));
+    // Add event details - show only title for short events (less than 30 minutes)
+    if (durationMinutes < 30) {
+        eventElement.innerHTML = `
+            <div class="event-title">${eventData.name}</div>
+        `;
+        eventElement.classList.add('short-event');
+    } else {
+        eventElement.innerHTML = `
+            <div class="event-title">${eventData.name}</div>
+            <div class="event-time">${startTimeStr} - ${endTimeStr}</div>
+            <div class="event-class">${eventClass ? eventClass.name : ''}</div>
+        `;
+    }
+    
+    // Add click handler for showing details
+    eventElement.addEventListener('click', () => showEventDetails(eventData));
     
     // Check for overlapping events
     const existingEvents = startSlot.querySelectorAll('.schedule-event');
@@ -195,9 +263,19 @@ function openEditModal(event) {
     
     // Populate form fields
     document.getElementById('event-title').value = event.name;
-    document.getElementById('event-class').value = event.classesItemId;
-    document.getElementById('event-start').value = event.startHour;
-    document.getElementById('event-end').value = event.endHour;
+    
+    // Handle both old and new time formats
+    if (event.startTime && event.endTime) {
+        // New format (HH:mm)
+        document.getElementById('event-start').value = event.startTime;
+        document.getElementById('event-end').value = event.endTime;
+    } else {
+        // Old format (hour only)
+        const startHour = event.startHour || 9;
+        const endHour = event.endHour || 10;
+        document.getElementById('event-start').value = `${startHour}:00`;
+        document.getElementById('event-end').value = `${endHour}:00`;
+    }
     
     // Set the day based on the event date
     const eventDate = new Date(event.date);
@@ -205,12 +283,17 @@ function openEditModal(event) {
     const day = days[eventDate.getDay()];
     document.getElementById('event-day').value = day;
     
-    // Show delete button
-    document.getElementById('delete-event-btn').style.display = 'inline-block';
+    // Populate class select and set the value
+    populateClassSelect();
+    const classSelect = document.getElementById('event-class');
+    classSelect.value = event.classesItemId.toString();
     
     // Update Materialize select elements
     M.updateTextFields();
-    M.FormSelect.init(document.querySelectorAll('select'));
+    M.FormSelect.init(classSelect);
+    
+    // Show delete button
+    document.getElementById('delete-event-btn').style.display = 'inline-block';
     
     // Open modal
     const modal = M.Modal.getInstance(document.getElementById('event-modal'));
@@ -402,11 +485,11 @@ document.addEventListener('DOMContentLoaded', function() {
         const classSelect = document.getElementById('event-class');
         const selectedOption = classSelect.options[classSelect.selectedIndex];
         const classId = classSelect.value;
-        const startHour = parseInt(document.getElementById('event-start').value);
-        const endHour = parseInt(document.getElementById('event-end').value);
+        const startTime = document.getElementById('event-start').value;
+        const endTime = document.getElementById('event-end').value;
         const day = document.getElementById('event-day').value;
         
-        if (title && classId && startHour && endHour && day) {
+        if (title && classId && startTime && endTime && day) {
             // Calculate the date based on the selected day and current week
             const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
             const dayIndex = days.indexOf(day.toLowerCase());
@@ -418,8 +501,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 name: title,
                 classesItemId: parseInt(classId),
                 date: eventDate.toISOString().split('T')[0],
-                startHour: startHour,
-                endHour: endHour,
+                startTime: startTime,
+                endTime: endTime,
                 createdAt: new Date().toISOString()
             };
             
@@ -451,6 +534,39 @@ document.addEventListener('DOMContentLoaded', function() {
         } else {
             M.toast({html: 'Please fill in all fields'});
         }
+    });
+
+    // Edit button in details modal
+    document.getElementById('edit-event-btn').addEventListener('click', () => {
+        const detailsModal = document.getElementById('event-details-modal');
+        const eventData = JSON.parse(detailsModal.dataset.event);
+        M.Modal.getInstance(detailsModal).close();
+        openEditModal(eventData);
+    });
+
+    // Delete button in details modal
+    document.getElementById('delete-event-details-btn').addEventListener('click', async () => {
+        if (confirm('Are you sure you want to delete this event?')) {
+            const detailsModal = document.getElementById('event-details-modal');
+            const eventData = JSON.parse(detailsModal.dataset.event);
+            try {
+                showSavingOverlay();
+                await deleteEvent(eventData);
+                M.Modal.getInstance(detailsModal).close();
+                await renderTimetable();
+            } catch (error) {
+                console.error('Error deleting event:', error);
+                M.toast({html: 'Error deleting event. Please try again.'});
+            } finally {
+                hideSavingOverlay();
+            }
+        }
+    });
+
+    // Close button in details modal
+    document.getElementById('close-event-details-btn').addEventListener('click', () => {
+        const detailsModal = document.getElementById('event-details-modal');
+        M.Modal.getInstance(detailsModal).close();
     });
 });
 

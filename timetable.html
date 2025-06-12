@@ -181,42 +181,12 @@
 				</div>
 				<div class="row">
 					<div class="input-field col s6">
-						<select id="event-start" required>
-							<option value="" disabled selected>Choose start hour</option>
-							<option value="8">8:00</option>
-							<option value="9">9:00</option>
-							<option value="10">10:00</option>
-							<option value="11">11:00</option>
-							<option value="12">12:00</option>
-							<option value="13">13:00</option>
-							<option value="14">14:00</option>
-							<option value="15">15:00</option>
-							<option value="16">16:00</option>
-							<option value="17">17:00</option>
-							<option value="18">18:00</option>
-							<option value="19">19:00</option>
-							<option value="20">20:00</option>
-						</select>
-						<label>Start Hour</label>
+						<input type="time" id="event-start" required>
+						<label>Start Time</label>
 					</div>
 					<div class="input-field col s6">
-						<select id="event-end" required>
-							<option value="" disabled selected>Choose end hour</option>
-							<option value="8">8:00</option>
-							<option value="9">9:00</option>
-							<option value="10">10:00</option>
-							<option value="11">11:00</option>
-							<option value="12">12:00</option>
-							<option value="13">13:00</option>
-							<option value="14">14:00</option>
-							<option value="15">15:00</option>
-							<option value="16">16:00</option>
-							<option value="17">17:00</option>
-							<option value="18">18:00</option>
-							<option value="19">19:00</option>
-							<option value="20">20:00</option>
-						</select>
-						<label>End Hour</label>
+						<input type="time" id="event-end" required>
+						<label>End Time</label>
 					</div>
 				</div>
 				<div class="row">
@@ -235,11 +205,36 @@
 					</div>
 				</div>
 				<div class="modal-footer">
-					<button type="button" id="delete-event-btn" class="btn-flat red-text" style="display: none;">Delete</button>
-					<button type="button" id="cancel-event-btn" class="btn-flat">Cancel</button>
-					<button type="submit" id="save-event-btn" class="btn blue">Save</button>
+					<button type="button" id="delete-event-btn" class="delete-event-btn waves-effect waves-light btn-flat red-text" style="display: none;">Delete</button>
+					<button type="button" id="cancel-event-btn" class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+					<button type="submit" id="save-event-btn" class="waves-effect waves-light btn blue">Save</button>
 				</div>
 			</form>
+		</div>
+	</div>
+
+	<!-- Event Details Modal -->
+	<div id="event-details-modal" class="modal">
+		<div class="modal-content">
+			<h4 id="event-details-title"></h4>
+			<div class="event-details-content">
+				<div class="event-details-row">
+					<i class="material-icons">schedule</i>
+					<span id="event-details-time"></span>
+				</div>
+				<div class="event-details-row">
+					<i class="material-icons">event</i>
+					<span id="event-details-date"></span>
+				</div>
+				<div class="event-details-row">
+					<i class="material-icons">class</i>
+					<span id="event-details-class"></span>
+				</div>
+			</div>
+		</div>
+		<div class="modal-footer">
+			<button class="modal-close waves-effect waves-light btn-flat" id="close-event-details-btn">Close</button>
+			<button class="waves-effect waves-light btn blue" id="edit-event-btn">Edit</button>
 		</div>
 	</div>
 

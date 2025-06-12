@@ -1192,8 +1192,9 @@ input[type="text"].datepicker {
     transition: background-color 0.2s;
 }
 
-.delete-semester-btn:hover, .delete-class-btn:hover {
-    background-color: rgba(0,0,0,0.1);
+.delete-semester-btn:hover, .delete-class-btn:hover, #delete-event-btn:hover {
+    background-color: rgba(0,0,0,0.1) !important;
+    color: #666 !important;
 }
 
 .delete-semester-btn i, .delete-class-btn i {
@@ -2173,6 +2174,23 @@ input[type="text"].datepicker {
     border: 1px solid #e0e0e0;
     border-left: 4px solid;
     box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    min-height: 30px;
+}
+
+.schedule-event.short-event {
+    padding: 4px 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.schedule-event.short-event .event-title {
+    margin: 0;
+    font-size: 0.9em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .schedule-event.overlapping {
@@ -2199,11 +2217,17 @@ input[type="text"].datepicker {
 .event-title {
     font-weight: 500;
     margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .event-time, .event-class {
     font-size: 0.85em;
     color: #666;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .modal .btn:hover {
@@ -2212,6 +2236,63 @@ input[type="text"].datepicker {
 
 #event-modal .btn:hover,
 #event-modal .btn-flat:hover {
-    background-color: #6C757D !important;
+    background-color: rgba(0,0,0,0.1) !important;
+    color: #666 !important;
+}
+
+.event-details-content {
+    padding: 20px 0;
+}
+
+.event-details-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.event-details-row i {
+    margin-right: 10px;
+    color: #2196F3;
+}
+
+.event-details-row span {
+    font-size: 1.1em;
+}
+
+#event-details-title {
+    color: #333;
+    margin-bottom: 20px;
+    font-weight: 500;
+}
+
+.modal-footer {
+    padding: 15px 0 0;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+/* Modal button hover styles */
+.modal .btn-flat:hover,
+.modal .btn:hover,
+.modal .modal-close:hover,
+.delete-semester-btn:hover, 
+.delete-class-btn:hover, 
+#delete-event-btn:hover,
+#event-modal .btn:hover,
+#event-modal .btn-flat:hover {
+    background-color: rgba(0,0,0,0.1) !important;
+    color: #666 !important;
+}
+
+/* Override for blue buttons */
+.modal .btn.blue:hover {
+    background-color: var(--primary-blue-light) !important;
     color: white !important;
+}
+
+/* Override for red text buttons */
+.modal .btn-flat.red-text:hover {
+    color: var(--red) !important;
 }
