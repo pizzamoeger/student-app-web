@@ -45,7 +45,16 @@ async function init() {
             throw new Error('Failed to initialize global state');
         }
 
-        // Initialize Materialize components first
+        // Wait for Materialize to be ready
+        await new Promise(resolve => {
+            if (typeof M !== 'undefined') {
+                resolve();
+            } else {
+                document.addEventListener('DOMContentLoaded', resolve);
+            }
+        });
+        
+        // Initialize Materialize components
         initializeMaterialize();
         
         // Now that global state is ready, load assignments

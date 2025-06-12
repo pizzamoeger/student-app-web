@@ -74,8 +74,8 @@ function createTimeSlots() {
     const timeHeader = timeColumn.querySelector('.time-header');
     timeHeader.innerHTML = 'Time';
     
-    // Create time slots from 8 AM to 8 PM
-    for (let hour = 8; hour <= 20; hour++) {
+    // Create time slots for all 24 hours
+    for (let hour = 0; hour < 24; hour++) {
         const timeSlot = document.createElement('div');
         timeSlot.className = 'time-slot';
         timeSlot.innerHTML = `${hour}:00`;
@@ -105,8 +105,8 @@ function createScheduleSlots() {
         dayColumn.className = 'day-column';
         dayColumn.dataset.day = day;
         
-        // Create time slots for each day
-        for (let hour = 8; hour <= 20; hour++) {
+        // Create time slots for all 24 hours
+        for (let hour = 0; hour < 24; hour++) {
             const slot = document.createElement('div');
             slot.className = 'schedule-slot';
             slot.dataset.time = `${hour}:00`;
@@ -344,24 +344,18 @@ async function renderTimetable() {
     createDayHeaders();
     createScheduleSlots();
     
-    // Get and render events
-    const events = getEvents();
-    console.log('Fetched events:', events); // Debug log
-    
-    if (events) {
-        // Convert single event to array if needed
-        const eventsArray = Array.isArray(events) ? events : [events];
-        
-        if (eventsArray.length > 0) {
-            eventsArray.forEach(event => {
-                renderEvent(event);
-            });
-        } else {
-            console.log('No events found or events array is empty'); // Debug log
+    // Render events
+    renderEvents();
+
+    // Scroll to 8 AM by default
+    setTimeout(() => {
+        const scheduleGrid = document.querySelector('.schedule-grid');
+        const timeSlots = document.querySelectorAll('.time-slot');
+        const eightAMSlot = Array.from(timeSlots).find(slot => slot.textContent.includes('8:00'));
+        if (eightAMSlot) {
+            scheduleGrid.scrollTop = eightAMSlot.offsetTop - 50; // Subtract header height
         }
-    } else {
-        console.log('No events found or events is null'); // Debug log
-    }
+    }, 100); // Small delay to ensure DOM is ready
 }
 
 async function loadEvents() {
@@ -437,137 +431,154 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Week navigation
-    document.getElementById('prev-week').addEventListener('click', async () => {
-        currentWeekStart.setDate(currentWeekStart.getDate() - 7);
-        await renderTimetable();
-    });
+    const prevWeekBtn = document.getElementById('prev-week');
+    const nextWeekBtn = document.getElementById('next-week');
+    const addEventBtn = document.getElementById('add-event-btn');
+    const cancelEventBtn = document.getElementById('cancel-event-btn');
+    const deleteEventBtn = document.getElementById('delete-event-btn');
+    const eventForm = document.getElementById('event-form');
+    const editEventBtn = document.getElementById('edit-event-btn');
+    const deleteEventDetailsBtn = document.getElementById('delete-event-details-btn');
+    const closeEventDetailsBtn = document.getElementById('close-event-details-btn');
+
+    if (prevWeekBtn) {
+        prevWeekBtn.addEventListener('click', async () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            await renderTimetable();
+        });
+    }
     
-    document.getElementById('next-week').addEventListener('click', async () => {
-        currentWeekStart.setDate(currentWeekStart.getDate() + 7);
-        await renderTimetable();
-    });
+    if (nextWeekBtn) {
+        nextWeekBtn.addEventListener('click', async () => {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            await renderTimetable();
+        });
+    }
     
-    // Add event button
-    document.getElementById('add-event-btn').addEventListener('click', () => {
-        populateClassSelect();
-        openAddModal();
-    });
+    if (addEventBtn) {
+        addEventBtn.addEventListener('click', () => {
+            populateClassSelect();
+            openAddModal();
+        });
+    }
     
-    // Cancel button
-    document.getElementById('cancel-event-btn').addEventListener('click', () => {
-        const modal = M.Modal.getInstance(document.getElementById('event-modal'));
-        modal.close();
-    });
+    if (cancelEventBtn) {
+        cancelEventBtn.addEventListener('click', () => {
+            const modal = M.Modal.getInstance(document.getElementById('event-modal'));
+            modal.close();
+        });
+    }
     
-    // Delete button
-    document.getElementById('delete-event-btn').addEventListener('click', async () => {
-        if (currentEditingEvent) {
-            try {
-                showSavingOverlay();
-                await deleteEvent(currentEditingEvent);
-                const modal = M.Modal.getInstance(document.getElementById('event-modal'));
-                modal.close();
-                await renderTimetable();
-            } catch (error) {
-                console.error('Error deleting event:', error);
-                M.toast({html: 'Error deleting event. Please try again.'});
-            } finally {
-                hideSavingOverlay();
-            }
-        }
-    });
-    
-    // Save event form
-    document.getElementById('event-form').addEventListener('submit', async (e) => {
-        e.preventDefault();
-        
-        const title = document.getElementById('event-title').value;
-        const classSelect = document.getElementById('event-class');
-        const selectedOption = classSelect.options[classSelect.selectedIndex];
-        const classId = classSelect.value;
-        const startTime = document.getElementById('event-start').value;
-        const endTime = document.getElementById('event-end').value;
-        const day = document.getElementById('event-day').value;
-        
-        if (title && classId && startTime && endTime && day) {
-            // Calculate the date based on the selected day and current week
-            const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-            const dayIndex = days.indexOf(day.toLowerCase());
-            const eventDate = new Date(currentWeekStart);
-            eventDate.setDate(eventDate.getDate() + dayIndex);
-            
-            // Create the event data object
-            const eventData = {
-                name: title,
-                classesItemId: parseInt(classId),
-                date: eventDate.toISOString().split('T')[0],
-                startTime: startTime,
-                endTime: endTime,
-                createdAt: new Date().toISOString()
-            };
-            
-            // If editing, add the original event's ID
+    if (deleteEventBtn) {
+        deleteEventBtn.addEventListener('click', async () => {
             if (currentEditingEvent) {
-                eventData.id = currentEditingEvent.id;
+                try {
+                    showSavingOverlay();
+                    await deleteEvent(currentEditingEvent);
+                    const modal = M.Modal.getInstance(document.getElementById('event-modal'));
+                    modal.close();
+                    await renderTimetable();
+                } catch (error) {
+                    console.error('Error deleting event:', error);
+                    M.toast({html: 'Error deleting event. Please try again.'});
+                } finally {
+                    hideSavingOverlay();
+                }
             }
+        });
+    }
+    
+    if (eventForm) {
+        eventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
             
-            // Convert the entire event data to a JSON string
-            const eventJsonString = JSON.stringify(eventData);
-            console.log('Saving event as JSON string:', eventJsonString);
+            const title = document.getElementById('event-title').value;
+            const classSelect = document.getElementById('event-class');
+            const selectedOption = classSelect.options[classSelect.selectedIndex];
+            const classId = classSelect.value;
+            const startTime = document.getElementById('event-start').value;
+            const endTime = document.getElementById('event-end').value;
+            const day = document.getElementById('event-day').value;
             
-            try {
-                showSavingOverlay();
-                await saveEvent(eventJsonString);
-                // Reset form and close modal
-                document.getElementById('event-form').reset();
-                M.updateTextFields();
-                const modal = M.Modal.getInstance(document.getElementById('event-modal'));
-                modal.close();
-                // Refresh the timetable to show the new event
-                await renderTimetable();
-            } catch (error) {
-                console.error('Error saving event:', error);
-                M.toast({html: 'Error saving event. Please try again.'});
-            } finally {
-                hideSavingOverlay();
+            if (title && classId && startTime && endTime && day) {
+                // Calculate the date based on the selected day and current week
+                const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+                const dayIndex = days.indexOf(day.toLowerCase());
+                const eventDate = new Date(currentWeekStart);
+                eventDate.setDate(eventDate.getDate() + dayIndex);
+                
+                // Create the event data object
+                const eventData = {
+                    name: title,
+                    classesItemId: parseInt(classId),
+                    date: eventDate.toISOString().split('T')[0],
+                    startTime: startTime,
+                    endTime: endTime,
+                    createdAt: new Date().toISOString()
+                };
+                
+                // If editing, add the original event's ID
+                if (currentEditingEvent) {
+                    eventData.id = currentEditingEvent.id;
+                }
+                
+                try {
+                    showSavingOverlay();
+                    await saveEvent(JSON.stringify(eventData));
+                    // Reset form and close modal
+                    eventForm.reset();
+                    M.updateTextFields();
+                    const modal = M.Modal.getInstance(document.getElementById('event-modal'));
+                    modal.close();
+                    // Refresh the timetable to show the new event
+                    await renderTimetable();
+                } catch (error) {
+                    console.error('Error saving event:', error);
+                    M.toast({html: 'Error saving event. Please try again.'});
+                } finally {
+                    hideSavingOverlay();
+                }
+            } else {
+                M.toast({html: 'Please fill in all fields'});
             }
-        } else {
-            M.toast({html: 'Please fill in all fields'});
-        }
-    });
+        });
+    }
 
-    // Edit button in details modal
-    document.getElementById('edit-event-btn').addEventListener('click', () => {
-        const detailsModal = document.getElementById('event-details-modal');
-        const eventData = JSON.parse(detailsModal.dataset.event);
-        M.Modal.getInstance(detailsModal).close();
-        openEditModal(eventData);
-    });
-
-    // Delete button in details modal
-    document.getElementById('delete-event-details-btn').addEventListener('click', async () => {
-        if (confirm('Are you sure you want to delete this event?')) {
+    if (editEventBtn) {
+        editEventBtn.addEventListener('click', () => {
             const detailsModal = document.getElementById('event-details-modal');
             const eventData = JSON.parse(detailsModal.dataset.event);
-            try {
-                showSavingOverlay();
-                await deleteEvent(eventData);
-                M.Modal.getInstance(detailsModal).close();
-                await renderTimetable();
-            } catch (error) {
-                console.error('Error deleting event:', error);
-                M.toast({html: 'Error deleting event. Please try again.'});
-            } finally {
-                hideSavingOverlay();
-            }
-        }
-    });
+            M.Modal.getInstance(detailsModal).close();
+            openEditModal(eventData);
+        });
+    }
 
-    // Close button in details modal
-    document.getElementById('close-event-details-btn').addEventListener('click', () => {
-        const detailsModal = document.getElementById('event-details-modal');
-        M.Modal.getInstance(detailsModal).close();
-    });
+    if (deleteEventDetailsBtn) {
+        deleteEventDetailsBtn.addEventListener('click', async () => {
+            if (confirm('Are you sure you want to delete this event?')) {
+                const detailsModal = document.getElementById('event-details-modal');
+                const eventData = JSON.parse(detailsModal.dataset.event);
+                try {
+                    showSavingOverlay();
+                    await deleteEvent(eventData);
+                    M.Modal.getInstance(detailsModal).close();
+                    await renderTimetable();
+                } catch (error) {
+                    console.error('Error deleting event:', error);
+                    M.toast({html: 'Error deleting event. Please try again.'});
+                } finally {
+                    hideSavingOverlay();
+                }
+            }
+        });
+    }
+
+    if (closeEventDetailsBtn) {
+        closeEventDetailsBtn.addEventListener('click', () => {
+            const detailsModal = document.getElementById('event-details-modal');
+            M.Modal.getInstance(detailsModal).close();
+        });
+    }
 });
 
 // Listen for auth state changes
@@ -593,4 +604,132 @@ firebase.auth().onAuthStateChanged(async (user) => {
         
         document.getElementById('week-display').textContent = formatWeekDisplay(currentWeekStart);
     }
-}); 
+});
+
+// Helper function to get the start of the week (Monday)
+function getWeekStart(date) {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+    // Set to Monday of current week
+    start.setDate(start.getDate() - start.getDay() + 1);
+    return start;
+}
+
+function renderEvents() {
+    const events = getEvents();
+    console.log('Events:', events);
+    const weekStart = getWeekStart(currentWeekStart);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekEnd.getDate() + 6);
+
+    // Clear existing events
+    document.querySelectorAll('.schedule-event').forEach(event => event.remove());
+
+    events.forEach(event => {
+        const eventDate = new Date(event.date);
+        if (eventDate >= weekStart && eventDate <= weekEnd) {
+            const dayIndex = eventDate.getDay();
+            const dayColumn = document.querySelector(`.day-column:nth-child(${dayIndex + 1})`);
+            if (!dayColumn) return;
+
+            const eventElement = document.createElement('div');
+            eventElement.className = 'schedule-event';
+            
+            // Get class color from classesItemId
+            const classes = getClasses();
+            const eventClass = classes.find(cls => cls.id === event.classesItemId);
+            const classColor = eventClass ? eventClass.color : 0x2196F3; // Default blue if class not found
+            eventElement.style.backgroundColor = intToRGBHex(classColor);
+            eventElement.style.borderLeft = `4px solid ${intToRGBHex(classColor)}`;
+
+            // Parse start and end times
+            if (!event.startTime || event.startTime === '') {
+                event.startTime = event.startHour + ':00';
+            }
+            if (!event.endTime || event.endTime === '') {
+                event.endTime = event.endHour + ':00';
+            }
+            const [startHour, startMinute] = event.startTime.split(':').map(Number);
+            const [endHour, endMinute] = event.endTime.split(':').map(Number);
+            console.log('Start time:', startHour, startMinute);
+            console.log('End time:', endHour, endMinute);
+
+            // Calculate position and height
+            const startPosition = (startHour + startMinute / 60) * 40; // 40px per hour
+            const endPosition = (endHour + endMinute / 60) * 40;
+            const height = endPosition - startPosition - 1; // Subtract 1px to account for border
+
+            // Calculate duration in hours
+            const duration = (endHour + endMinute / 60) - (startHour + startMinute / 60);
+
+            console.log('Start time:', startHour, startMinute);
+            console.log('End time:', endHour, endMinute);
+            console.log('Start position:', startPosition);
+            console.log('End position:', endPosition);
+            console.log('Height:', height);
+
+            eventElement.style.top = `${startPosition}px`;
+            eventElement.style.height = `${height}px`;
+
+            // Create event content
+            const eventContent = document.createElement('div');
+            eventContent.className = 'event-content';
+            
+            // Get class name if available
+            const className = eventClass ? eventClass.name : '';
+            
+            if (duration >= 2) {
+                // For events >= 2 hours: title, class name in gray, time
+                const title = document.createElement('div');
+                title.className = 'event-title';
+                title.textContent = event.name;
+                eventContent.appendChild(title);
+
+                const classInfo = document.createElement('div');
+                classInfo.className = 'event-class';
+                classInfo.style.color = '#666';
+                classInfo.textContent = className;
+                eventContent.appendChild(classInfo);
+
+                const time = document.createElement('div');
+                time.className = 'event-time';
+                time.textContent = `${event.startTime} - ${event.endTime}`;
+                eventContent.appendChild(time);
+            } else if (duration >= 1) {
+                // For events 1-2 hours: title and class name in gray on the same line
+                const titleRow = document.createElement('div');
+                titleRow.style.display = 'flex';
+                titleRow.style.justifyContent = 'space-between';
+                titleRow.style.alignItems = 'center';
+
+                const title = document.createElement('div');
+                title.className = 'event-title';
+                title.textContent = event.name;
+                titleRow.appendChild(title);
+
+                const classInfo = document.createElement('div');
+                classInfo.className = 'event-class';
+                classInfo.style.color = '#666';
+                classInfo.textContent = className;
+                titleRow.appendChild(classInfo);
+
+                eventContent.appendChild(titleRow);
+            } else {
+                // For events < 1 hour: just title
+                const title = document.createElement('div');
+                title.className = 'event-title';
+                title.textContent = event.name;
+                eventContent.appendChild(title);
+            }
+            
+            eventElement.appendChild(eventContent);
+
+            // Add click handler for editing
+            eventElement.addEventListener('click', () => {
+                openEditModal(event);
+            });
+
+            dayColumn.appendChild(eventElement);
+        }
+    });
+} 
