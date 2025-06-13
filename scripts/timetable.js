@@ -877,6 +877,15 @@ document.addEventListener('DOMContentLoaded', function() {
         repeatSelect.addEventListener('change', function(e) {
             const repeatEndDateContainer = document.getElementById('repeat-end-date-container');
             if (e.target.value === 'true') {
+                // Set default end date to current semester's end date
+                const currentSemester = getCurrentSemester();
+                console.log('Current semester:', currentSemester);
+                if (currentSemester && currentSemester.end) {
+                    const endDate = new Date(currentSemester.end);
+                    const formattedDate = endDate.toISOString().split('T')[0];
+                    document.getElementById('repeat-end-date').value = formattedDate;
+                    console.log('Set repeat end date to:', formattedDate);
+                }
                 repeatEndDateContainer.style.display = 'block';
             } else {
                 repeatEndDateContainer.style.display = 'none';
@@ -999,4 +1008,3 @@ function renderEvents() {
         }
     });
 }
-
