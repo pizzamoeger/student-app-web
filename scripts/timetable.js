@@ -225,7 +225,7 @@ function showMultipleEvents(events, time) {
         eventItem.innerHTML = `
             <div style="display: flex; justify-content: space-between; align-items: center;">
                 <div>
-                    <div class="event-title">${event.name}</div>
+                    <div class="event-title" style="color: #000;">${event.name}</div>
                     <div class="event-time" style="color: #666; font-size: 0.9em;">${event.startTime} - ${event.endTime}</div>
                 </div>
                 <div class="event-class" style="color: #666;">${eventClass ? eventClass.name : ''}</div>

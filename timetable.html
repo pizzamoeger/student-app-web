@@ -16,6 +16,40 @@
 	<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 	<title>Timetable</title>
+
+	<style>
+		/* Override Materialize's input validation color from green to blue */
+		.input-field input[type=text]:focus:not([readonly]),
+		input[type=time]:focus:not([readonly]),
+		select.valid {
+			border-bottom: 1px solid #2196F3 !important;
+			box-shadow: 0 1px 0 0 #2196F3 !important;
+		}
+		.input-field input[type=text]:focus + label,
+		input[type=text]:focus:not([readonly]) + label,
+		input[type=time]:focus:not([readonly]) + label {
+			color: #2196F3 !important;
+		}
+		.select-wrapper input.select-dropdown:focus {
+			border-bottom: 1px solid #2196F3 !important;
+		}
+		.select-wrapper .caret {
+			fill: #2196F3 !important;
+		}
+		/* Keep text color black for better readability */
+		.input-field input[type=text],
+		.input-field input[type=time],
+		.select-wrapper input.select-dropdown {
+			color: #000 !important;
+		}
+		/* Style for valid inputs */
+		.input-field input[type=text].valid,
+		.input-field input[type=time].valid,
+		.select-wrapper input.select-dropdown.valid {
+			border-bottom: 1px solid #2196F3 !important;
+			box-shadow: 0 1px 0 0 #2196F3 !important;
+		}
+	</style>
 </head>
 
 <body id="timetable">
