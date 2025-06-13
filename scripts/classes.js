@@ -263,9 +263,13 @@ function hideSavingOverlay() {
 async function addClass(className, color) {
     try {
         showSavingOverlay();
+
+        // get the max class id
+        const allClasses = getClasses();
+        const maxClassId = Math.max(...allClasses.map(c => c.id));
         
         const classData = {
-            id: Date.now(),
+            id: maxClassId ? maxClassId + 1 : 1,
             name: className,
             color: hexToInt(color),
             assignments: []

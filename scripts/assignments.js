@@ -151,21 +151,6 @@ function initializeMaterialize() {
     console.log('Materialize components initialized');
 }
 
-// Load assignments from Firebase
-async function loadAssignments() {
-    // Since we now check state initialization in init(), we can just return assignments
-    const assignments = getAssignments();
-    if (assignments === null || assignments === undefined) {
-        throw new Error('No assignments available');
-    }
-    return assignments;
-}
-
-// Save assignments to localStorage
-function saveAssignments() {
-    localStorage.setItem('assignments', JSON.stringify(assignments));
-}
-
 // Setup event listeners
 function setupEventListeners() {
     // Add assignment button
@@ -205,7 +190,7 @@ function setupEventListeners() {
             
             try {
                 const assignmentData = {
-                    name: name,
+                    title: name,
                     classId: classId ? Number(classId) : null,  // Convert to number if present
                     dueDate: dueDate,
                     description: document.getElementById('assignment-description').value.trim(),
@@ -451,7 +436,7 @@ export function renderAssignments() {
         return `
             <div class="assignment-card ${isOverdue ? 'assignment-overdue' : ''}" style="border-left: 4px solid ${classColor}">
                 <div class="assignment-info">
-                    <div class="assignment-title">${assignment.name || 'Untitled Assignment'}</div>
+                    <div class="assignment-title">${assignment.title || 'Untitled Assignment'}</div>
                     <div class="assignment-details">
                         <span class="assignment-class">
                             ${assignmentClass ? assignmentClass.name : 'Unknown Class'}
