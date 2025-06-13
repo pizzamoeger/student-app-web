@@ -256,6 +256,7 @@ function renderEvent(event) {
 }
 
 function openEditModal(event) {
+    console.log('Opening edit modal for event:', event);
     currentEditingEvent = event;
     
     // Set modal title
@@ -288,7 +289,17 @@ function openEditModal(event) {
     document.getElementById('delete-event-btn').style.display = 'block';
     
     // Initialize Materialize select
-    M.FormSelect.init(document.querySelectorAll('select'));
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        M.FormSelect.init(select, {
+            dropdownOptions: {
+                container: document.body,
+                constrainWidth: false,
+                coverTrigger: false,
+                closeOnClick: true
+            }
+        });
+    });
     
     // Open modal
     const modal = M.Modal.getInstance(document.getElementById('event-modal'));
@@ -296,21 +307,33 @@ function openEditModal(event) {
 }
 
 function openAddModal() {
+    console.log('Opening add modal');
     currentEditingEvent = null;
     
     // Set modal title
     document.getElementById('modal-title').textContent = 'Add Event';
     
     // Reset form
-    document.getElementById('event-form').reset();
-    document.getElementById('event-form').dataset.eventId = '';
+    const form = document.getElementById('event-form');
+    form.reset();
+    form.dataset.eventId = '';
     document.getElementById('repeat-end-date-container').style.display = 'none';
     
     // Hide delete button
     document.getElementById('delete-event-btn').style.display = 'none';
     
     // Initialize Materialize select
-    M.FormSelect.init(document.querySelectorAll('select'));
+    const selects = document.querySelectorAll('select');
+    selects.forEach(select => {
+        M.FormSelect.init(select, {
+            dropdownOptions: {
+                container: document.body,
+                constrainWidth: false,
+                coverTrigger: false,
+                closeOnClick: true
+            }
+        });
+    });
     
     // Open modal
     const modal = M.Modal.getInstance(document.getElementById('event-modal'));
@@ -420,6 +443,8 @@ function populateClassSelect() {
 
 // Event Listeners
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM Content Loaded');
+    
     // Initialize Materialize components
     const modals = document.querySelectorAll('.modal');
     M.Modal.init(modals);
@@ -449,10 +474,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const addEventBtn = document.getElementById('add-event-btn');
     const cancelEventBtn = document.getElementById('cancel-event-btn');
     const deleteEventBtn = document.getElementById('delete-event-btn');
-    const eventForm = document.getElementById('event-form');
     const editEventBtn = document.getElementById('edit-event-btn');
     const deleteEventDetailsBtn = document.getElementById('delete-event-details-btn');
     const closeEventDetailsBtn = document.getElementById('close-event-details-btn');
+
+    console.log('Event form element:', document.getElementById('event-form'));
 
     if (prevWeekBtn) {
         prevWeekBtn.addEventListener('click', async () => {
@@ -500,24 +526,78 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    console.log("hallooooooooo")
     
-    if (eventForm) {
-        eventForm.addEventListener('submit', async (e) => {
+    if (document.getElementById('event-form')) {
+        console.log('Adding submit event listener to form');
+        document.getElementById('event-form').addEventListener('submit', async function(e) {
             e.preventDefault();
+            console.log('Form submission started');
             
-            // Get the selected day and convert it to a date
+            // Get form values
+            const title = document.getElementById('event-title').value;
+            const classId = document.getElementById('event-class').value;
+            const startTime = document.getElementById('event-start').value;
+            const endTime = document.getElementById('event-end').value;
             const selectedDay = document.getElementById('event-day').value;
+            const repeatValue = document.getElementById('event-repeat').value;
+            const repeatUntil = document.getElementById('repeat-end-date').value;
+
+            console.log('Form values:', {
+                title,
+                classId,
+                startTime,
+                endTime,
+                selectedDay,
+                repeatValue,
+                repeatUntil
+            });
+
+            // Validate form
+            if (!title) {
+                console.log('Title is missing');
+                M.toast({html: 'Please enter an event title'});
+                return;
+            }
+            if (!classId) {
+                console.log('Class is missing');
+                M.toast({html: 'Please select a class'});
+                return;
+            }
+            if (!startTime) {
+                console.log('Start time is missing');
+                M.toast({html: 'Please select a start time'});
+                return;
+            }
+            if (!endTime) {
+                console.log('End time is missing');
+                M.toast({html: 'Please select an end time'});
+                return;
+            }
+            if (!selectedDay) {
+                console.log('Day is missing');
+                M.toast({html: 'Please select a day'});
+                return;
+            }
+            if (repeatValue === 'true' && !repeatUntil) {
+                console.log('Repeat end date is missing');
+                M.toast({html: 'Please select an end date for the repeated event'});
+                return;
+            }
+
+            // Get the date for the selected day
             const eventDate = getDateForDay(selectedDay);
+            console.log('Event date:', eventDate);
             
             const eventData = {
-                name: document.getElementById('event-title').value,
-                classesItemId: document.getElementById('event-class').value,
-                startTime: document.getElementById('event-start').value,
-                endTime: document.getElementById('event-end').value,
+                name: title,
+                classesItemId: classId,
+                startTime: startTime,
+                endTime: endTime,
                 date: eventDate,
-                repeated: document.getElementById('event-repeat').value,
-                repeatUntil: document.getElementById('event-repeat').value === 'true' ? 
-                    document.getElementById('repeat-end-date').value : null
+                repeated: repeatValue,
+                repeatUntil: repeatValue === 'true' ? repeatUntil : null
             };
 
             // If editing, include the event ID
@@ -526,17 +606,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 eventData.id = eventId;
             }
 
+            console.log('Final event data:', eventData);
+
             try {
+                console.log('Showing saving overlay');
                 showSavingOverlay();
-                console.log('Saving event data:', eventData);
+                console.log('Calling saveEvent');
                 await saveEvent(eventData);
+                console.log('Event saved successfully');
                 const modal = M.Modal.getInstance(document.getElementById('event-modal'));
                 modal.close();
+                console.log('Modal closed');
                 await renderTimetable();
+                console.log('Timetable rendered');
             } catch (error) {
                 console.error('Error saving event:', error);
                 M.toast({html: 'Error saving event. Please try again.'});
             } finally {
+                console.log('Hiding saving overlay');
                 hideSavingOverlay();
             }
         });
