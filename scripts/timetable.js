@@ -158,7 +158,31 @@ function showEventDetails(event) {
     modal.open();
 }
 
-function renderEvent(event) {
+function calculateEventCountsPerSlot(events) {
+    const slotCounts = new Map(); // Map to store event counts for each slot
+    
+    events.forEach(event => {
+        const eventData = typeof event === 'string' ? JSON.parse(event) : event;
+        const eventDate = new Date(eventData.date);
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const day = days[eventDate.getDay()-1];
+        
+        // Handle both old and new time formats
+        let startHour;
+        if (eventData.startTime) {
+            startHour = parseInt(eventData.startTime.split(':')[0]);
+        } else {
+            startHour = eventData.startHour || 9;
+        }
+        
+        const slotKey = `${day}-${startHour}`;
+        slotCounts.set(slotKey, (slotCounts.get(slotKey) || 0) + 1);
+    });
+    
+    return slotCounts;
+}
+
+function renderEvent(event, slotCounts) {
     // Parse event if it's a string
     const eventData = typeof event === 'string' ? JSON.parse(event) : event;
     
@@ -171,8 +195,6 @@ function renderEvent(event) {
     const eventDate = new Date(eventData.date);
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const day = days[eventDate.getDay()-1];
-    
-    console.log('Event date:', eventData.date, 'Day:', day); // Debug log
     
     const dayColumn = document.querySelector(`.day-column[data-day="${day}"]`);
     if (!dayColumn) {
@@ -210,6 +232,63 @@ function renderEvent(event) {
         return;
     }
     
+    // Get the total number of events for this slot from our pre-calculated counts
+    const slotKey = `${day}-${startHour}`;
+    const totalEvents = slotCounts.get(slotKey) || 1;
+    
+    // Get the current event's index in this slot
+    const existingEvents = startSlot.querySelectorAll('.schedule-event');
+    const eventIndex = existingEvents.length;
+    
+    // Calculate width and position based on total events (max 3)
+    const slotWidth = startSlot.offsetWidth;
+    const displayEvents = Math.min(totalEvents, 3);
+    const eventWidth = Math.max((slotWidth-10) / displayEvents, 60); // Minimum width of 60px
+    
+    // If this is the fourth or later event, show the "+X more" indicator instead
+    if (eventIndex >= 2) {
+        // Only create the indicator once
+        if (eventIndex === 2) {
+            const moreIndicator = document.createElement('div');
+            moreIndicator.className = 'schedule-event more-events-indicator';
+            moreIndicator.style.borderLeftColor = '#666';
+            moreIndicator.style.backgroundColor = '#f5f5f5';
+            
+            // Calculate height based on duration in minutes
+            const durationMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
+            moreIndicator.style.height = `${durationMinutes/60*40}px`;
+            moreIndicator.style.top = `${startMinute*40/60}px`;
+            
+            // Calculate width and position - only take up remaining space
+            const usedWidth = eventWidth * 2; // Width used by the first 3 events
+            const remainingWidth = eventWidth; // Subtract padding
+            moreIndicator.style.width = `${remainingWidth}px`;
+            moreIndicator.style.left = `${usedWidth}px`;
+            moreIndicator.style.position = 'absolute';
+            
+            // Add the indicator content
+            const remainingEvents = totalEvents - 3;
+            moreIndicator.innerHTML = `
+                <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
+                    <div style="text-align: center; color: #666;">
+                        <div style="font-size: 1.2em;">+${remainingEvents}</div>
+                        <div style="font-size: 0.9em;">more</div>
+                    </div>
+                </div>
+            `;
+            
+            // Add click handler to show all events
+            moreIndicator.addEventListener('click', () => {
+                const allEvents = Array.from(startSlot.querySelectorAll('.schedule-event'))
+                    .map(el => JSON.parse(el.dataset.event));
+                showMultipleEvents(allEvents, startTimeStr);
+            });
+            
+            startSlot.appendChild(moreIndicator);
+        }
+        return; // Skip rendering this event
+    }
+    
     // Create event element
     const eventElement = document.createElement('div');
     eventElement.className = 'schedule-event';
@@ -219,15 +298,7 @@ function renderEvent(event) {
     // Calculate height based on duration in minutes
     const durationMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
     
-    // Check for existing events in this slot
-    const existingEvents = startSlot.querySelectorAll('.schedule-event');
-    const eventCount = existingEvents.length;
-    console.log("Event count:", eventCount);
-    
-    // Calculate width and position based on number of events
-    const slotWidth = startSlot.offsetWidth;
-    const eventWidth = Math.max(slotWidth / (eventCount + 1), 60); // Minimum width of 60px
-    const eventLeft = (eventWidth * eventCount);
+    const eventLeft = (eventWidth * eventIndex);
     
     eventElement.style.height = `${durationMinutes/60*40}px`; // 1px per minute
     eventElement.style.top = `${startMinute*40/60}px`;
@@ -237,25 +308,24 @@ function renderEvent(event) {
     
     // Add event details - show only title for short events (less than 30 minutes)
     if (durationMinutes < 120) {
-         // For events 1-2 hours: title and class name in gray on the same line
-         const titleRow = document.createElement('div');
-         titleRow.style.display = 'flex';
-         titleRow.style.justifyContent = 'space-between';
-         titleRow.style.alignItems = 'center';
- 
-         const title = document.createElement('div');
-         title.className = 'event-title';
-         title.textContent = event.name;
-         titleRow.appendChild(title);
- 
-         const classInfo = document.createElement('div');
-         classInfo.className = 'event-class';
-         classInfo.style.color = '#666';
-         classInfo.textContent = eventClass ? eventClass.name : '';
-         titleRow.appendChild(classInfo);
- 
-         eventElement.appendChild(titleRow);
-        //eventElement.classList.add('short-event');
+        // For events 1-2 hours: title and class name in gray on the same line
+        const titleRow = document.createElement('div');
+        titleRow.style.display = 'flex';
+        titleRow.style.justifyContent = 'space-between';
+        titleRow.style.alignItems = 'center';
+
+        const title = document.createElement('div');
+        title.className = 'event-title';
+        title.textContent = event.name;
+        titleRow.appendChild(title);
+
+        const classInfo = document.createElement('div');
+        classInfo.className = 'event-class';
+        classInfo.style.color = '#666';
+        classInfo.textContent = eventClass ? eventClass.name : '';
+        titleRow.appendChild(classInfo);
+
+        eventElement.appendChild(titleRow);
     } else {
         eventElement.innerHTML = `
             <div class="event-title">${eventData.name}</div>
@@ -827,6 +897,9 @@ function renderEvents() {
     // Clear existing events
     document.querySelectorAll('.schedule-event').forEach(event => event.remove());
 
+    // Calculate event counts for each slot before rendering
+    const slotCounts = calculateEventCountsPerSlot(events);
+
     events.forEach(event => {
         const eventDate = new Date(event.date);
         
@@ -837,7 +910,7 @@ function renderEvents() {
             
             while (currentDate <= weekEnd && (!repeatEndDate || currentDate <= repeatEndDate)) {
                 if (currentDate >= weekStart) {
-                    renderEvent(event);
+                    renderEvent(event, slotCounts);
                 }
                 
                 // Move to next occurrence based on repeat type
@@ -856,7 +929,7 @@ function renderEvents() {
         } else {
             // Handle non-repeated events
             if (eventDate >= weekStart && eventDate <= weekEnd) {
-                renderEvent(event);
+                renderEvent(event, slotCounts);
             }
         }
     });
