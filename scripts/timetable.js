@@ -244,7 +244,7 @@ function showMultipleEvents(events, time) {
     M.Modal.getInstance(modal).open();
 }
 
-function renderEvent(event, slotCounts) {
+async function renderEvent(event, slotCounts) {
     // Parse event if it's a string
     const eventData = typeof event === 'string' ? JSON.parse(event) : event;
     
@@ -258,6 +258,7 @@ function renderEvent(event, slotCounts) {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     const day = days[eventDate.getDay()-1];
     
+    // Find the day column
     const dayColumn = document.querySelector(`.day-column[data-day="${day}"]`);
     if (!dayColumn) {
         console.log('Day column not found for:', day);
@@ -592,11 +593,13 @@ async function renderTimetable() {
     
     // Recreate the schedule structure
     createTimeSlots();
-    createDayHeaders();
     createScheduleSlots();
     
-    // Render events
-    renderEvents();
+    // Render events first
+    await renderEvents();
+
+    // Create day headers after events are rendered
+    createDayHeaders();
 
     // Scroll to 8 AM by default
     setTimeout(() => {
@@ -607,34 +610,6 @@ async function renderTimetable() {
             scheduleGrid.scrollTop = eightAMSlot.offsetTop - 50; // Subtract header height
         }
     }, 100); // Small delay to ensure DOM is ready
-}
-
-async function loadEvents() {
-    const user = firebase.auth().currentUser;
-    if (!user) return;
-    
-    try {
-        const eventsRef = db.collection('users').doc(user.uid).collection('events');
-        const snapshot = await eventsRef.get();
-        
-        snapshot.forEach(doc => {
-            const event = doc.data();
-            const dayIndex = getDayIndex(event.day);
-            if (dayIndex !== -1) {
-                const dayColumn = document.querySelectorAll('.day-column')[dayIndex];
-                const eventCard = createEventCard(event);
-                dayColumn.appendChild(eventCard);
-            }
-        });
-    } catch (error) {
-        console.error('Error loading events:', error);
-        M.toast({html: 'Error loading events. Please try refreshing.'});
-    }
-}
-
-function getDayIndex(day) {
-    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
-    return days.indexOf(day.toLowerCase());
 }
 
 // Event Listeners
@@ -961,7 +936,7 @@ function getWeekStart(date) {
     return start;
 }
 
-function renderEvents() {
+async function renderEvents() {
     const events = getEvents();
     console.log('Events:', events);
     const weekStart = getWeekStart(currentWeekStart);
@@ -974,7 +949,8 @@ function renderEvents() {
     // Calculate event counts for each slot before rendering
     const slotCounts = calculateEventCountsPerSlot(events);
 
-    events.forEach(event => {
+    // Use for...of to properly await each event render
+    for (const event of events) {
         const eventDate = new Date(event.date);
         
         // Handle repeated events
@@ -984,7 +960,7 @@ function renderEvents() {
             
             while (currentDate <= weekEnd && (!repeatEndDate || currentDate <= repeatEndDate)) {
                 if (currentDate >= weekStart) {
-                    renderEvent(event, slotCounts);
+                    await renderEvent(event, slotCounts);
                 }
                 
                 // Move to next occurrence based on repeat type
@@ -1003,8 +979,8 @@ function renderEvents() {
         } else {
             // Handle non-repeated events
             if (eventDate >= weekStart && eventDate <= weekEnd) {
-                renderEvent(event, slotCounts);
+                await renderEvent(event, slotCounts);
             }
         }
-    });
+    }
 }
