@@ -171,8 +171,8 @@ function renderEvent(event) {
     
     // Convert date to day of week
     const eventDate = new Date(eventData.date);
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const day = days[eventDate.getDay()];
+    const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const day = days[eventDate.getDay()-1];
     
     console.log('Event date:', eventData.date, 'Day:', day); // Debug log
     
@@ -322,7 +322,7 @@ function openAddModal() {
     
     // Set default day to current day
     const today = new Date();
-    const jsDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const jsDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     document.getElementById('event-day').value = jsDays[today.getDay()];
     
     // Populate and set default class
@@ -378,8 +378,8 @@ function openEditModal(event) {
     
     // Set the day
     const eventDate = new Date(event.date);
-    const jsDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayIndex = eventDate.getDay();
+    const jsDays = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+    const dayIndex = eventDate.getDay()-1;
     console.log('openEditModal day selection:', {
         eventDate,
         eventDateString: eventDate.toISOString(),
@@ -762,15 +762,15 @@ firebase.auth().onAuthStateChanged(async (user) => {
 
 // Helper function to get the date for a given day in the current week
 function getDateForDay(day) {
-    // Map the selected day to the correct day index (Monday=1, Tuesday=2, etc.)
+    // Map the selected day to the correct day index (matching the HTML select options)
     const dayMap = {
-        'monday': 1,
-        'tuesday': 2,
-        'wednesday': 3,
-        'thursday': 4,
-        'friday': 5,
-        'saturday': 6,
-        'sunday': 0
+        'monday': 0,
+        'tuesday': 1,
+        'wednesday': 2,
+        'thursday': 3,
+        'friday': 4,
+        'saturday': 5,
+        'sunday': 6
     };
     
     const dayIndex = dayMap[day.toLowerCase()];
@@ -782,7 +782,7 @@ function getDateForDay(day) {
     // Create a new date from the current week's start date (Monday)
     const date = new Date(currentWeekStart);
     // Add the day index to get the correct date
-    date.setDate(date.getDate() + (dayIndex - 1)); // Subtract 1 because we start from Monday
+    date.setDate(date.getDate() + dayIndex);
     console.log('getDateForDay:', {
         inputDay: day,
         dayIndex,
@@ -849,7 +849,7 @@ function renderEvents() {
 
 // Helper function to render a single event
 function renderSingleEvent(event, eventDate) {
-    const dayIndex = eventDate.getDay();
+    const dayIndex = eventDate.getDay()-1;
     const dayColumn = document.querySelector(`.day-column:nth-child(${dayIndex + 1})`);
     if (!dayColumn) return;
 
