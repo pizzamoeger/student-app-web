@@ -159,8 +159,6 @@ function showEventDetails(event) {
 }
 
 function renderEvent(event) {
-    console.log('Rendering event:', event);
-    
     // Parse event if it's a string
     const eventData = typeof event === 'string' ? JSON.parse(event) : event;
     
@@ -220,20 +218,44 @@ function renderEvent(event) {
     
     // Calculate height based on duration in minutes
     const durationMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
-    eventElement.style.height = `${durationMinutes}px`; // 1px per minute
     
-    // Calculate top offset based on start minute
-    eventElement.style.top = `${startMinute}px`;
+    // Check for existing events in this slot
+    const existingEvents = startSlot.querySelectorAll('.schedule-event');
+    const eventCount = existingEvents.length;
+    console.log("Event count:", eventCount);
+    
+    // Calculate width and position based on number of events
+    const slotWidth = startSlot.offsetWidth;
+    const eventWidth = Math.max(slotWidth / (eventCount + 1), 60); // Minimum width of 60px
+    const eventLeft = (eventWidth * eventCount);
+    
+    eventElement.style.height = `${durationMinutes/60*40}px`; // 1px per minute
+    eventElement.style.top = `${startMinute*40/60}px`;
+    eventElement.style.width = `${eventWidth}px`;
+    eventElement.style.left = `${eventLeft}px`;
+    eventElement.style.position = 'absolute';
     
     // Add event details - show only title for short events (less than 30 minutes)
     if (durationMinutes < 120) {
-        eventElement.innerHTML = `
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div class="event-title">${eventData.name}</div>
-                <div class="event-class" style="color: #666; font-size: 0.9em;">${eventClass ? eventClass.name : ''}</div>
-            </div>
-        `;
-        eventElement.classList.add('short-event');
+         // For events 1-2 hours: title and class name in gray on the same line
+         const titleRow = document.createElement('div');
+         titleRow.style.display = 'flex';
+         titleRow.style.justifyContent = 'space-between';
+         titleRow.style.alignItems = 'center';
+ 
+         const title = document.createElement('div');
+         title.className = 'event-title';
+         title.textContent = event.name;
+         titleRow.appendChild(title);
+ 
+         const classInfo = document.createElement('div');
+         classInfo.className = 'event-class';
+         classInfo.style.color = '#666';
+         classInfo.textContent = eventClass ? eventClass.name : '';
+         titleRow.appendChild(classInfo);
+ 
+         eventElement.appendChild(titleRow);
+        //eventElement.classList.add('short-event');
     } else {
         eventElement.innerHTML = `
             <div class="event-title">${eventData.name}</div>
@@ -244,16 +266,6 @@ function renderEvent(event) {
     
     // Add click handler for showing details
     eventElement.addEventListener('click', () => showEventDetails(eventData));
-    
-    // Check for overlapping events
-    const existingEvents = startSlot.querySelectorAll('.schedule-event');
-    if (existingEvents.length > 0) {
-        // Mark all events in this slot as overlapping
-        existingEvents.forEach(existingEvent => {
-            existingEvent.classList.add('overlapping');
-        });
-        eventElement.classList.add('overlapping');
-    }
     
     startSlot.appendChild(eventElement);
 }
@@ -825,7 +837,7 @@ function renderEvents() {
             
             while (currentDate <= weekEnd && (!repeatEndDate || currentDate <= repeatEndDate)) {
                 if (currentDate >= weekStart) {
-                    renderSingleEvent(event, currentDate);
+                    renderEvent(event);
                 }
                 
                 // Move to next occurrence based on repeat type
@@ -844,106 +856,9 @@ function renderEvents() {
         } else {
             // Handle non-repeated events
             if (eventDate >= weekStart && eventDate <= weekEnd) {
-                renderSingleEvent(event, eventDate);
+                renderEvent(event);
             }
         }
     });
 }
 
-// Helper function to render a single event
-function renderSingleEvent(event, eventDate) {
-    const dayIndex = eventDate.getDay()-1;
-    const dayColumn = document.querySelector(`.day-column:nth-child(${dayIndex + 1})`);
-    if (!dayColumn) return;
-
-    const eventElement = document.createElement('div');
-    eventElement.className = 'schedule-event';
-    
-    // Get class color from classesItemId
-    const classes = getClasses();
-    const eventClass = classes.find(cls => cls.id === event.classesItemId);
-    const classColor = eventClass ? eventClass.color : 0x2196F3; // Default blue if class not found
-    eventElement.style.backgroundColor = intToRGBHex(classColor);
-    eventElement.style.borderLeft = `4px solid ${intToRGBHex(classColor)}`;
-
-    // Parse start and end times
-    if (!event.startTime || event.startTime === '') {
-        event.startTime = event.startHour + ':00';
-    }
-    if (!event.endTime || event.endTime === '') {
-        event.endTime = event.endHour + ':00';
-    }
-    const [startHour, startMinute] = event.startTime.split(':').map(Number);
-    const [endHour, endMinute] = event.endTime.split(':').map(Number);
-
-    // Calculate position and height
-    const startPosition = (startHour + startMinute / 60) * 40; // 40px per hour
-    const endPosition = (endHour + endMinute / 60) * 40;
-    const height = endPosition - startPosition - 1; // Subtract 1px to account for border
-
-    // Calculate duration in hours
-    const duration = (endHour + endMinute / 60) - (startHour + startMinute / 60);
-
-    eventElement.style.top = `${startPosition}px`;
-    eventElement.style.height = `${height}px`;
-
-    // Create event content
-    const eventContent = document.createElement('div');
-    eventContent.className = 'event-content';
-    
-    // Get class name if available
-    const className = eventClass ? eventClass.name : '';
-    
-    if (duration >= 2) {
-        // For events >= 2 hours: title, class name in gray, time
-        const title = document.createElement('div');
-        title.className = 'event-title';
-        title.textContent = event.name;
-        eventContent.appendChild(title);
-
-        const classInfo = document.createElement('div');
-        classInfo.className = 'event-class';
-        classInfo.style.color = '#666';
-        classInfo.textContent = className;
-        eventContent.appendChild(classInfo);
-
-        const time = document.createElement('div');
-        time.className = 'event-time';
-        time.textContent = `${event.startTime} - ${event.endTime}`;
-        eventContent.appendChild(time);
-    } else if (duration >= 1) {
-        // For events 1-2 hours: title and class name in gray on the same line
-        const titleRow = document.createElement('div');
-        titleRow.style.display = 'flex';
-        titleRow.style.justifyContent = 'space-between';
-        titleRow.style.alignItems = 'center';
-
-        const title = document.createElement('div');
-        title.className = 'event-title';
-        title.textContent = event.name;
-        titleRow.appendChild(title);
-
-        const classInfo = document.createElement('div');
-        classInfo.className = 'event-class';
-        classInfo.style.color = '#666';
-        classInfo.textContent = className;
-        titleRow.appendChild(classInfo);
-
-        eventContent.appendChild(titleRow);
-    } else {
-        // For events < 1 hour: just title
-        const title = document.createElement('div');
-        title.className = 'event-title';
-        title.textContent = event.name;
-        eventContent.appendChild(title);
-    }
-    
-    eventElement.appendChild(eventContent);
-
-    // Add click handler for editing
-    eventElement.addEventListener('click', () => {
-        openEditModal(event);
-    });
-
-    dayColumn.appendChild(eventElement);
-} 
