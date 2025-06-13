@@ -262,7 +262,6 @@ export async function saveEvent(event) {
     
     // Parse the event if it's a string
     const eventData = typeof event === 'string' ? JSON.parse(event) : event;
-    console.log("rsitnirestnie" + eventData)
     
     // Initialize events array if it doesn't exist
     if (!Array.isArray(globalState.events)) {

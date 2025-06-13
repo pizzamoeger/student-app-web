@@ -585,7 +585,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get form values
             const title = document.getElementById('event-title').value;
-            const classId = document.getElementById('event-class').value;
+            const classId = Number(document.getElementById('event-class').value);
             const startTime = document.getElementById('event-start').value;
             const endTime = document.getElementById('event-end').value;
             const selectedDay = document.getElementById('event-day').value;
