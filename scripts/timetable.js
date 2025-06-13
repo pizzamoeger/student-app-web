@@ -255,38 +255,92 @@ function renderEvent(event) {
     startSlot.appendChild(eventElement);
 }
 
-function openEditModal(event) {
-    console.log('Opening edit modal for event:', event);
-    currentEditingEvent = event;
+function populateClassSelect() {
+    const classSelect = document.getElementById('event-class');
+    const classes = getClasses();
+    const currentSemester = getCurrentSemester();
     
-    // Set modal title
-    document.getElementById('modal-title').textContent = 'Edit Event';
+    // Clear existing options
+    classSelect.innerHTML = '<option value="" disabled selected>Choose a class</option>';
     
-    // Populate form fields
-    document.getElementById('event-title').value = event.name;
-    document.getElementById('event-class').value = event.classesItemId;
-    document.getElementById('event-start').value = event.startTime;
-    document.getElementById('event-end').value = event.endTime;
-    
-    // Set the day
-    const eventDate = new Date(event.date);
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    document.getElementById('event-day').value = days[eventDate.getDay()];
-    
-    // Set repeat options
-    document.getElementById('event-repeat').value = event.repeated ? 'true' : 'false';
-    if (event.repeated) {
-        document.getElementById('repeat-end-date-container').style.display = 'block';
-        document.getElementById('repeat-end-date').value = event.repeatUntil;
+    // Add class options only from current semester
+    if (classes && classes.length > 0 && currentSemester) {
+        const currentSemesterClasses = classes.filter(cls => 
+            currentSemester.classesInSemester.includes(cls.id)
+        );
+        
+        if (currentSemesterClasses.length > 0) {
+            currentSemesterClasses.forEach(cls => {
+                const option = document.createElement('option');
+                option.value = cls.id;
+                option.textContent = cls.name;
+                classSelect.appendChild(option);
+            });
+        } else {
+            const option = document.createElement('option');
+            option.value = "";
+            option.disabled = true;
+            option.textContent = 'No classes in current semester';
+            classSelect.appendChild(option);
+        }
     } else {
-        document.getElementById('repeat-end-date-container').style.display = 'none';
+        const option = document.createElement('option');
+        option.value = "";
+        option.disabled = true;
+        option.textContent = 'No classes available';
+        classSelect.appendChild(option);
     }
     
-    // Store event ID for editing
-    document.getElementById('event-form').dataset.eventId = event.id;
+    // Reinitialize select with proper options
+    M.FormSelect.init(classSelect, {
+        dropdownOptions: {
+            container: document.body,
+            constrainWidth: false,
+            coverTrigger: false,
+            closeOnClick: true
+        }
+    });
+}
+
+function openAddModal() {
+    console.log('Opening add modal');
+    currentEditingEvent = null;
     
-    // Show delete button
-    document.getElementById('delete-event-btn').style.display = 'block';
+    // Set modal title
+    document.getElementById('modal-title').textContent = 'Add Event';
+    
+    // Reset form
+    const form = document.getElementById('event-form');
+    form.reset();
+    form.dataset.eventId = '';
+    document.getElementById('repeat-end-date-container').style.display = 'none';
+    
+    // Set default values
+    document.getElementById('event-start').value = '09:00';
+    document.getElementById('event-end').value = '10:00';
+    document.getElementById('event-repeat').value = 'false';
+    
+    // Set default day to current day
+    const today = new Date();
+    const jsDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    document.getElementById('event-day').value = jsDays[today.getDay()];
+    
+    // Populate and set default class
+    populateClassSelect();
+    const classes = getClasses();
+    const currentSemester = getCurrentSemester();
+    if (classes && classes.length > 0 && currentSemester) {
+        const currentSemesterClasses = classes.filter(cls => 
+            currentSemester.classesInSemester.includes(cls.id)
+        );
+        if (currentSemesterClasses.length > 0) {
+            document.getElementById('event-class').value = currentSemesterClasses[0].id;
+            M.FormSelect.init(document.getElementById('event-class'));
+        }
+    }
+    
+    // Hide delete button
+    document.getElementById('delete-event-btn').style.display = 'none';
     
     // Initialize Materialize select
     const selects = document.querySelectorAll('select');
@@ -306,21 +360,49 @@ function openEditModal(event) {
     modal.open();
 }
 
-function openAddModal() {
-    console.log('Opening add modal');
-    currentEditingEvent = null;
+function openEditModal(event) {
+    console.log('Opening edit modal for event:', event);
+    currentEditingEvent = event;
     
     // Set modal title
-    document.getElementById('modal-title').textContent = 'Add Event';
+    document.getElementById('modal-title').textContent = 'Edit Event';
     
-    // Reset form
-    const form = document.getElementById('event-form');
-    form.reset();
-    form.dataset.eventId = '';
-    document.getElementById('repeat-end-date-container').style.display = 'none';
+    // Populate classes first
+    populateClassSelect();
     
-    // Hide delete button
-    document.getElementById('delete-event-btn').style.display = 'none';
+    // Populate form fields
+    document.getElementById('event-title').value = event.name;
+    document.getElementById('event-class').value = event.classesItemId;
+    document.getElementById('event-start').value = event.startTime;
+    document.getElementById('event-end').value = event.endTime;
+    
+    // Set the day
+    const eventDate = new Date(event.date);
+    const jsDays = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+    const dayIndex = eventDate.getDay();
+    console.log('openEditModal day selection:', {
+        eventDate,
+        eventDateString: eventDate.toISOString(),
+        dayIndex,
+        selectedDay: jsDays[dayIndex],
+        currentWeekStart
+    });
+    document.getElementById('event-day').value = jsDays[dayIndex];
+    
+    // Set repeat options
+    document.getElementById('event-repeat').value = event.repeated ? 'true' : 'false';
+    if (event.repeated) {
+        document.getElementById('repeat-end-date-container').style.display = 'block';
+        document.getElementById('repeat-end-date').value = event.repeatUntil;
+    } else {
+        document.getElementById('repeat-end-date-container').style.display = 'none';
+    }
+    
+    // Store event ID for editing
+    document.getElementById('event-form').dataset.eventId = event.id;
+    
+    // Show delete button
+    document.getElementById('delete-event-btn').style.display = 'block';
     
     // Initialize Materialize select
     const selects = document.querySelectorAll('select');
@@ -403,42 +485,6 @@ async function loadEvents() {
 function getDayIndex(day) {
     const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
     return days.indexOf(day.toLowerCase());
-}
-
-function populateClassSelect() {
-    const classSelect = document.getElementById('event-class');
-    const classes = getClasses();
-    const currentSemester = getCurrentSemester();
-    
-    // Clear existing options
-    classSelect.innerHTML = '<option value="" disabled selected>Choose a class</option>';
-    
-    // Add class options only from current semester
-    if (classes && classes.length > 0 && currentSemester) {
-        const currentSemesterClasses = classes.filter(cls => 
-            currentSemester.classesInSemester.includes(cls.id)
-        );
-        
-        if (currentSemesterClasses.length > 0) {
-            currentSemesterClasses.forEach(cls => {
-                classSelect.innerHTML += `<option value="${cls.id}">${cls.name}</option>`;
-            });
-        } else {
-            classSelect.innerHTML += '<option value="" disabled>No classes in current semester</option>';
-        }
-    } else {
-        classSelect.innerHTML += '<option value="" disabled>No classes available</option>';
-    }
-    
-    // Reinitialize select with proper options
-    const selectInstance = M.FormSelect.init(classSelect, {
-        dropdownOptions: {
-            container: document.body,
-            constrainWidth: false,
-            coverTrigger: false,
-            closeOnClick: true
-        }
-    });
 }
 
 // Event Listeners
@@ -527,7 +573,6 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
-    console.log("hallooooooooo")
     
     if (document.getElementById('event-form')) {
         console.log('Adding submit event listener to form');
@@ -596,7 +641,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 startTime: startTime,
                 endTime: endTime,
                 date: eventDate,
-                repeated: repeatValue,
+                repeated: repeatValue === 'true',
                 repeatUntil: repeatValue === 'true' ? repeatUntil : null
             };
 
@@ -604,6 +649,17 @@ document.addEventListener('DOMContentLoaded', function() {
             const eventId = document.getElementById('event-form').dataset.eventId;
             if (eventId) {
                 eventData.id = eventId;
+                
+                // If changing to repeating, delete the original event
+                if (repeatValue === 'true' && !currentEditingEvent.repeated) {
+                    try {
+                        await deleteEvent(currentEditingEvent);
+                    } catch (error) {
+                        console.error('Error deleting original event:', error);
+                        M.toast({html: 'Error updating event. Please try again.'});
+                        return;
+                    }
+                }
             }
 
             console.log('Final event data:', eventData);
@@ -703,6 +759,39 @@ firebase.auth().onAuthStateChanged(async (user) => {
         document.getElementById('week-display').textContent = formatWeekDisplay(currentWeekStart);
     }
 });
+
+// Helper function to get the date for a given day in the current week
+function getDateForDay(day) {
+    // Map the selected day to the correct day index (Monday=1, Tuesday=2, etc.)
+    const dayMap = {
+        'monday': 1,
+        'tuesday': 2,
+        'wednesday': 3,
+        'thursday': 4,
+        'friday': 5,
+        'saturday': 6,
+        'sunday': 0
+    };
+    
+    const dayIndex = dayMap[day.toLowerCase()];
+    if (dayIndex === undefined) {
+        console.error('Invalid day:', day);
+        return null;
+    }
+    
+    // Create a new date from the current week's start date (Monday)
+    const date = new Date(currentWeekStart);
+    // Add the day index to get the correct date
+    date.setDate(date.getDate() + (dayIndex - 1)); // Subtract 1 because we start from Monday
+    console.log('getDateForDay:', {
+        inputDay: day,
+        dayIndex,
+        currentWeekStart,
+        resultDate: date,
+        resultDay: date.getDay()
+    });
+    return date.toISOString();
+}
 
 // Helper function to get the start of the week (Monday)
 function getWeekStart(date) {
@@ -854,13 +943,4 @@ function renderSingleEvent(event, eventDate) {
     });
 
     dayColumn.appendChild(eventElement);
-}
-
-// Helper function to get the date for a given day in the current week
-function getDateForDay(day) {
-    const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-    const dayIndex = days.indexOf(day.toLowerCase());
-    const date = new Date(currentWeekStart);
-    date.setDate(date.getDate() + dayIndex);
-    return date.toISOString();
 } 
