@@ -182,6 +182,68 @@ function calculateEventCountsPerSlot(events) {
     return slotCounts;
 }
 
+function showMultipleEvents(events, time) {
+    const modal = document.getElementById('multiple-events-modal');
+    const timeSpan = document.getElementById('multiple-events-time');
+    const eventsList = document.getElementById('multiple-events-list');
+    
+    // Set the time
+    timeSpan.textContent = time;
+    
+    // Clear existing events
+    eventsList.innerHTML = '';
+    
+    // Get all events for this time slot from our data
+    const allEvents = getEvents().filter(event => {
+        const eventDate = new Date(event.date);
+        const days = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+        const day = days[eventDate.getDay()-1];
+        
+        // Handle both old and new time formats
+        let startHour;
+        if (event.startTime) {
+            startHour = parseInt(event.startTime.split(':')[0]);
+        } else {
+            startHour = event.startHour || 9;
+        }
+        
+        // Check if this event is in the same time slot
+        return event.startTime === time || `${startHour}:00` === time;
+    });
+    
+    // Add each event to the list
+    allEvents.forEach(event => {
+        const classes = getClasses();
+        const eventClass = classes.find(cls => cls.id === event.classesItemId);
+        const classColor = eventClass ? eventClass.color : 0x2196F3;
+        
+        const eventItem = document.createElement('a');
+        eventItem.className = 'collection-item';
+        eventItem.style.borderLeft = `4px solid ${intToRGBHex(classColor)}`;
+        eventItem.style.cursor = 'pointer';
+        
+        eventItem.innerHTML = `
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    <div class="event-title">${event.name}</div>
+                    <div class="event-time" style="color: #666; font-size: 0.9em;">${event.startTime} - ${event.endTime}</div>
+                </div>
+                <div class="event-class" style="color: #666;">${eventClass ? eventClass.name : ''}</div>
+            </div>
+        `;
+        
+        eventItem.addEventListener('click', () => {
+            M.Modal.getInstance(modal).close();
+            showEventDetails(event);
+        });
+        
+        eventsList.appendChild(eventItem);
+    });
+    
+    // Open the modal
+    M.Modal.getInstance(modal).open();
+}
+
 function renderEvent(event, slotCounts) {
     // Parse event if it's a string
     const eventData = typeof event === 'string' ? JSON.parse(event) : event;
@@ -253,6 +315,7 @@ function renderEvent(event, slotCounts) {
             moreIndicator.className = 'schedule-event more-events-indicator';
             moreIndicator.style.borderLeftColor = '#666';
             moreIndicator.style.backgroundColor = '#f5f5f5';
+            moreIndicator.style.cursor = 'pointer';
             
             // Calculate height based on duration in minutes
             const durationMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
@@ -260,14 +323,14 @@ function renderEvent(event, slotCounts) {
             moreIndicator.style.top = `${startMinute*40/60}px`;
             
             // Calculate width and position - only take up remaining space
-            const usedWidth = eventWidth * 2; // Width used by the first 3 events
+            const usedWidth = eventWidth * 2; // Width used by the first 2 events
             const remainingWidth = eventWidth; // Subtract padding
             moreIndicator.style.width = `${remainingWidth}px`;
             moreIndicator.style.left = `${usedWidth}px`;
             moreIndicator.style.position = 'absolute';
             
             // Add the indicator content
-            const remainingEvents = totalEvents - 3;
+            const remainingEvents = totalEvents - 2;
             moreIndicator.innerHTML = `
                 <div style="display: flex; justify-content: center; align-items: center; height: 100%;">
                     <div style="text-align: center; color: #666;">
@@ -279,9 +342,11 @@ function renderEvent(event, slotCounts) {
             
             // Add click handler to show all events
             moreIndicator.addEventListener('click', () => {
-                const allEvents = Array.from(startSlot.querySelectorAll('.schedule-event'))
+                // Get all events for this slot
+                const slotEvents = Array.from(startSlot.querySelectorAll('.schedule-event'))
+                    .filter(el => !el.classList.contains('more-events-indicator'))
                     .map(el => JSON.parse(el.dataset.event));
-                showMultipleEvents(allEvents, startTimeStr);
+                showMultipleEvents(slotEvents, startTimeStr);
             });
             
             startSlot.appendChild(moreIndicator);
