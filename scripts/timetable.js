@@ -166,7 +166,8 @@ function renderEvent(event) {
     
     // Get the class color from the classesItemId
     const classes = getClasses();
-    const eventClass = classes.find(cls => cls.id === eventData.classesItemId);
+    const eventClass = classes.find(cls => cls.id === eventData.classesItemId); 
+    console.log("The class is "+eventClass.name)
     const classColor = eventClass ? eventClass.color : 0x2196F3; // Default blue if class not found
     
     // Convert date to day of week
@@ -215,8 +216,13 @@ function renderEvent(event) {
     // Create event element
     const eventElement = document.createElement('div');
     eventElement.className = 'schedule-event';
-    eventElement.style.borderLeftColor = intToRGBHex(classColor);
-    eventElement.dataset.event = JSON.stringify(eventData); // Store event data for editing
+
+    console.log('airtneiarsntiearnt Event data:', eventData);
+    
+    // Set the left border color using the class color
+    eventElement.style.borderLeft = `4px solid ${intToRGBHex(classColor)}`;
+    // Set a light background color based on the class color
+    eventElement.style.backgroundColor = `${intToRGBHex(classColor)}20`; // 20 is hex for 12% opacity
     
     // Calculate height based on duration in minutes
     const durationMinutes = (endHour * 60 + endMinute) - (startHour * 60 + startMinute);
@@ -582,7 +588,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Get form values
             const title = document.getElementById('event-title').value;
-            const classId = document.getElementById('event-class').value;
+            const classId = Number(document.getElementById('event-class').value);
             const startTime = document.getElementById('event-start').value;
             const endTime = document.getElementById('event-end').value;
             const selectedDay = document.getElementById('event-day').value;
@@ -816,131 +822,23 @@ function renderEvents() {
         const eventDate = new Date(event.date);
         
         // Handle repeated events
-        if (event.repeat && event.repeat !== 'none') {
-            const repeatEndDate = event.repeatEndDate ? new Date(event.repeatEndDate) : null;
+        if (event.repeated) {
+            const repeatEndDate = event.repeatUntil ? new Date(event.repeatUntil) : null;
             let currentDate = new Date(eventDate);
             
             while (currentDate <= weekEnd && (!repeatEndDate || currentDate <= repeatEndDate)) {
                 if (currentDate >= weekStart) {
-                    renderSingleEvent(event, currentDate);
+                    renderEvent(event);
                 }
                 
-                // Move to next occurrence based on repeat type
-                switch (event.repeat) {
-                    case 'daily':
-                        currentDate.setDate(currentDate.getDate() + 1);
-                        break;
-                    case 'weekly':
-                        currentDate.setDate(currentDate.getDate() + 7);
-                        break;
-                    case 'monthly':
-                        currentDate.setMonth(currentDate.getMonth() + 1);
-                        break;
-                }
+                // Move to next week
+                currentDate.setDate(currentDate.getDate() + 7);
             }
         } else {
             // Handle non-repeated events
             if (eventDate >= weekStart && eventDate <= weekEnd) {
-                renderSingleEvent(event, eventDate);
+                renderEvent(event);
             }
         }
     });
-}
-
-// Helper function to render a single event
-function renderSingleEvent(event, eventDate) {
-    const dayIndex = eventDate.getDay()-1;
-    const dayColumn = document.querySelector(`.day-column:nth-child(${dayIndex + 1})`);
-    if (!dayColumn) return;
-
-    const eventElement = document.createElement('div');
-    eventElement.className = 'schedule-event';
-    
-    // Get class color from classesItemId
-    const classes = getClasses();
-    const eventClass = classes.find(cls => cls.id === event.classesItemId);
-    const classColor = eventClass ? eventClass.color : 0x2196F3; // Default blue if class not found
-    eventElement.style.backgroundColor = intToRGBHex(classColor);
-    eventElement.style.borderLeft = `4px solid ${intToRGBHex(classColor)}`;
-
-    // Parse start and end times
-    if (!event.startTime || event.startTime === '') {
-        event.startTime = event.startHour + ':00';
-    }
-    if (!event.endTime || event.endTime === '') {
-        event.endTime = event.endHour + ':00';
-    }
-    const [startHour, startMinute] = event.startTime.split(':').map(Number);
-    const [endHour, endMinute] = event.endTime.split(':').map(Number);
-
-    // Calculate position and height
-    const startPosition = (startHour + startMinute / 60) * 40; // 40px per hour
-    const endPosition = (endHour + endMinute / 60) * 40;
-    const height = endPosition - startPosition - 1; // Subtract 1px to account for border
-
-    // Calculate duration in hours
-    const duration = (endHour + endMinute / 60) - (startHour + startMinute / 60);
-
-    eventElement.style.top = `${startPosition}px`;
-    eventElement.style.height = `${height}px`;
-
-    // Create event content
-    const eventContent = document.createElement('div');
-    eventContent.className = 'event-content';
-    
-    // Get class name if available
-    const className = eventClass ? eventClass.name : '';
-    
-    if (duration >= 2) {
-        // For events >= 2 hours: title, class name in gray, time
-        const title = document.createElement('div');
-        title.className = 'event-title';
-        title.textContent = event.name;
-        eventContent.appendChild(title);
-
-        const classInfo = document.createElement('div');
-        classInfo.className = 'event-class';
-        classInfo.style.color = '#666';
-        classInfo.textContent = className;
-        eventContent.appendChild(classInfo);
-
-        const time = document.createElement('div');
-        time.className = 'event-time';
-        time.textContent = `${event.startTime} - ${event.endTime}`;
-        eventContent.appendChild(time);
-    } else if (duration >= 1) {
-        // For events 1-2 hours: title and class name in gray on the same line
-        const titleRow = document.createElement('div');
-        titleRow.style.display = 'flex';
-        titleRow.style.justifyContent = 'space-between';
-        titleRow.style.alignItems = 'center';
-
-        const title = document.createElement('div');
-        title.className = 'event-title';
-        title.textContent = event.name;
-        titleRow.appendChild(title);
-
-        const classInfo = document.createElement('div');
-        classInfo.className = 'event-class';
-        classInfo.style.color = '#666';
-        classInfo.textContent = className;
-        titleRow.appendChild(classInfo);
-
-        eventContent.appendChild(titleRow);
-    } else {
-        // For events < 1 hour: just title
-        const title = document.createElement('div');
-        title.className = 'event-title';
-        title.textContent = event.name;
-        eventContent.appendChild(title);
-    }
-    
-    eventElement.appendChild(eventContent);
-
-    // Add click handler for editing
-    eventElement.addEventListener('click', () => {
-        openEditModal(event);
-    });
-
-    dayColumn.appendChild(eventElement);
 } 
