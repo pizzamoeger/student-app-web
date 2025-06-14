@@ -149,6 +149,61 @@
 		</div>
 	</div>
 
+    <!-- Add Grade Modal -->
+    <div id="add-grade-modal" class="modal">
+        <div class="modal-content">
+            <h4>Add Grade</h4>
+            <div class="row">
+                <form id="add-grade-form">
+                    <div class="input-field col s12">
+                        <input type="text" id="grade-name" required>
+                        <label for="grade-name">Grade Name (e.g., Midterm, Final)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input type="number" id="grade-value" min="0" max="100" required>
+                        <label for="grade-value">Grade Value (%)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input type="number" id="grade-weight" min="0.1" step="0.1" required>
+                        <label for="grade-weight">Weight (e.g., 1.0 for 100%, 0.5 for 50%)</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+            <button class="waves-effect waves-light btn blue" id="confirm-add-grade">Add Grade</button>
+        </div>
+    </div>
+
+    <!-- Edit Grade Modal -->
+    <div id="edit-grade-modal" class="modal">
+        <div class="modal-content">
+            <h4>Edit Grade</h4>
+            <div class="row">
+                <form id="edit-grade-form">
+                    <input type="hidden" id="edit-grade-index">
+                    <div class="input-field col s12">
+                        <input type="text" id="edit-grade-name" required>
+                        <label for="edit-grade-name">Grade Name</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input type="number" id="edit-grade-value" min="0" max="100" required>
+                        <label for="edit-grade-value">Grade Value (%)</label>
+                    </div>
+                    <div class="input-field col s12">
+                        <input type="number" id="edit-grade-weight" min="0.1" step="0.1" required>
+                        <label for="edit-grade-weight">Weight (e.g., 1.0 for 100%, 0.5 for 50%)</label>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="modal-close waves-effect waves-light btn-flat">Cancel</button>
+            <button class="waves-effect waves-light btn blue" id="confirm-edit-grade">Save Changes</button>
+        </div>
+    </div>
+
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-app.js"></script>
 	<script src="https://www.gstatic.com/firebasejs/5.6.0/firebase-auth.js"></script>
@@ -178,6 +233,142 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 	<script src="scripts/auth.js" type="module"></script> <!--TOOD module temporary-->
 	<script src="scripts/classes.js" type="module"></script>
+
+	<style>
+		/* Make the entire schedule area scrollable */
+		.schedule-container {
+			height: calc(100vh - 200px);
+			overflow-y: auto;
+		}
+
+		/* Grades section styles */
+		.grades-section {
+			margin-top: 20px;
+			padding: 15px;
+			background: #fff;
+			border-radius: 4px;
+			box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+		}
+
+		.grades-header {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			margin-bottom: 15px;
+		}
+
+		.grades-header h5 {
+			margin: 0;
+		}
+
+		.grades-list {
+			margin-top: 10px;
+		}
+
+		.grade-item {
+			display: flex;
+			justify-content: space-between;
+			align-items: center;
+			padding: 10px;
+			margin-bottom: 8px;
+			background: #f5f5f5;
+			border-radius: 4px;
+		}
+
+		.grade-info {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+		}
+
+		.grade-name {
+			font-weight: 500;
+		}
+
+		.grade-value {
+			color: #666;
+		}
+
+		.grade-actions {
+			display: flex;
+			gap: 5px;
+		}
+
+		.no-grades {
+			text-align: center;
+			color: #666;
+			padding: 20px;
+		}
+
+		/* Additional styles for grades section */
+		.grades-title {
+			display: flex;
+			align-items: center;
+			gap: 15px;
+		}
+
+		.weighted-average {
+			font-size: 0.9em;
+			color: #2196F3;
+			font-weight: 500;
+		}
+
+		.grade-weight {
+			color: #2196F3;
+			font-size: 0.9em;
+			background: rgba(33, 150, 243, 0.1);
+			padding: 2px 8px;
+			border-radius: 12px;
+		}
+
+		.grade-actions .btn-flat {
+			color: #000;
+		}
+
+		.grade-actions .btn-flat:hover {
+			background-color: rgba(0, 0, 0, 0.1);
+		}
+
+		.add-grade-btn {
+			background-color: #2196F3 !important;
+		}
+
+		.add-grade-btn:hover {
+			background-color: #1976D2 !important;
+		}
+
+		/* Modal styles for grades */
+		#add-grade-modal .modal-content,
+		#edit-grade-modal .modal-content {
+			padding: 20px;
+		}
+
+		#add-grade-modal .input-field,
+		#edit-grade-modal .input-field {
+			margin-bottom: 20px;
+		}
+
+		#add-grade-modal .input-field input:focus + label,
+		#edit-grade-modal .input-field input:focus + label {
+			color: #2196F3 !important;
+		}
+
+		#add-grade-modal .input-field input:focus,
+		#edit-grade-modal .input-field input:focus {
+			border-bottom: 1px solid #2196F3 !important;
+			box-shadow: 0 1px 0 0 #2196F3 !important;
+		}
+
+		#confirm-add-grade,
+		#confirm-edit-grade {
+			background-color: #2196F3 !important;
+		}
+
+		#confirm-add-grade:hover,
+		#confirm-edit-grade:hover {
+			background-color: #1976D2 !important;
+		}
+	</style>
 </body>
 
 </html>

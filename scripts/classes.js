@@ -176,6 +176,17 @@ function displayClassDetails(clazz) {
     const detailsContainer = document.getElementById('class-details');
     if (!detailsContainer) return;
 
+    // Calculate weighted average if there are grades
+    let weightedAverage = 0;
+    let totalWeight = 0;
+    if (clazz.grades && clazz.grades.length > 0) {
+        clazz.grades.forEach(grade => {
+            weightedAverage += (grade.value * grade.weight);
+            totalWeight += grade.weight;
+        });
+        weightedAverage = totalWeight > 0 ? (weightedAverage / totalWeight).toFixed(1) : 0;
+    }
+
     detailsContainer.innerHTML = `
         <div class="class-header">
             <div class="editable-name">
@@ -190,6 +201,39 @@ function displayClassDetails(clazz) {
                     <input type="color" id="class-color" value="${intToRGBHex(clazz.color) || '#2196F3'}" data-id="${clazz.id}">
                     <span>Class Color</span>
                 </div>
+            </div>
+        </div>
+        <div class="grades-section">
+            <div class="grades-header">
+                <div class="grades-title">
+                    <h5>Grades</h5>
+                    ${weightedAverage > 0 ? `<span class="weighted-average">Weighted Average: ${weightedAverage}%</span>` : ''}
+                </div>
+                <button class="btn waves-effect waves-light add-grade-btn" id="add-grade-btn">
+                    <i class="material-icons left">add</i>Add Grade
+                </button>
+            </div>
+            <div class="grades-list">
+                ${clazz.grades && clazz.grades.length > 0 ? 
+                    clazz.grades.map((grade, index) => `
+                        <div class="grade-item" data-index="${index}">
+                            <div class="grade-info">
+                                <span class="grade-name">${grade.name}</span>
+                                <span class="grade-value">${grade.value}%</span>
+                                <span class="grade-weight">Weight: ${grade.weight}</span>
+                            </div>
+                            <div class="grade-actions">
+                                <button class="btn-flat edit-grade-btn" data-index="${index}">
+                                    <i class="material-icons">edit</i>
+                                </button>
+                                <button class="btn-flat delete-grade-btn" data-index="${index}">
+                                    <i class="material-icons">delete</i>
+                                </button>
+                            </div>
+                        </div>
+                    `).join('') : 
+                    '<div class="no-grades">No grades added yet</div>'
+                }
             </div>
         </div>
         <div class="class-actions">
@@ -211,6 +255,57 @@ function displayClassDetails(clazz) {
             updateClassDetails(clazz.id, { name: newName, color: newColor });
         }
     });
+
+    // Add event listener for add grade button
+    const addGradeBtn = detailsContainer.querySelector('#add-grade-btn');
+    if (addGradeBtn) {
+        addGradeBtn.addEventListener('click', () => {
+            const modal = document.getElementById('add-grade-modal');
+            const instance = M.Modal.getInstance(modal);
+            if (instance) {
+                instance.open();
+            }
+        });
+    }
+
+    // Add event listeners for edit and delete grade buttons
+    detailsContainer.querySelectorAll('.edit-grade-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(btn.dataset.index);
+            const grade = clazz.grades[index];
+            const modal = document.getElementById('edit-grade-modal');
+            const instance = M.Modal.getInstance(modal);
+            
+            // Set the current grade values in the modal
+            const nameInput = document.getElementById('edit-grade-name');
+            const valueInput = document.getElementById('edit-grade-value');
+            const weightInput = document.getElementById('edit-grade-weight');
+            const indexInput = document.getElementById('edit-grade-index');
+
+            nameInput.value = grade.name;
+            valueInput.value = grade.value;
+            weightInput.value = grade.weight;
+            indexInput.value = index;
+
+            // Trigger Materialize's form initialization
+            M.updateTextFields();
+            
+            if (instance) {
+                instance.open();
+            }
+        });
+    });
+
+    detailsContainer.querySelectorAll('.delete-grade-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const index = parseInt(btn.dataset.index);
+            if (confirm('Are you sure you want to delete this grade?')) {
+                const updatedGrades = [...clazz.grades];
+                updatedGrades.splice(index, 1);
+                updateClassDetails(clazz.id, { grades: updatedGrades });
+            }
+        });
+    });
 }
 
 // Update class details
@@ -223,7 +318,8 @@ async function updateClassDetails(classId, updates) {
         if (classIndex !== -1) {
             classes[classIndex] = { ...classes[classIndex], ...updates };
             await updateClasses(classes);
-            renderClasses();
+            // Refresh the class details view with the updated class
+            displayClassDetails(classes[classIndex]);
             M.toast({html: 'Class updated successfully'});
         }
     } catch (error) {
@@ -272,7 +368,8 @@ async function addClass(className, color) {
             id: maxClassId ? maxClassId + 1 : 1,
             name: className,
             color: hexToInt(color),
-            assignments: []
+            assignments: [],
+            grades: [] // Add grades array to store grade entries
         };
 
         const classes = getClasses();
@@ -356,6 +453,67 @@ document.addEventListener('DOMContentLoaded', function() {
                 document.getElementById('add-class-form').reset();
             } else {
                 M.toast({html: 'Please enter a class name'});
+            }
+        });
+    }
+
+    // Add event listener for the confirm add grade button
+    const confirmAddGradeBtn = document.getElementById('confirm-add-grade');
+    if (confirmAddGradeBtn) {
+        confirmAddGradeBtn.addEventListener('click', () => {
+            const name = document.getElementById('grade-name').value;
+            const value = parseFloat(document.getElementById('grade-value').value);
+            const weight = parseFloat(document.getElementById('grade-weight').value);
+
+            if (name && !isNaN(value) && value >= 0 && value <= 100 && 
+                !isNaN(weight) && weight > 0) {
+                const classes = getClasses();
+                const selectedClass = classes.find(c => c.id === parseInt(document.querySelector('.editable-name h4').dataset.id));
+                
+                if (selectedClass) {
+                    const updatedGrades = [...(selectedClass.grades || [])];
+                    updatedGrades.push({ name, value, weight });
+                    updateClassDetails(selectedClass.id, { grades: updatedGrades });
+                    
+                    const modal = document.getElementById('add-grade-modal');
+                    const modalInstance = M.Modal.getInstance(modal);
+                    modalInstance.close();
+                    // Reset form
+                    document.getElementById('add-grade-form').reset();
+                }
+            } else {
+                M.toast({html: 'Please enter a valid grade name, value (0-100), and weight (> 0)'});
+            }
+        });
+    }
+
+    // Add event listener for the confirm edit grade button
+    const confirmEditGradeBtn = document.getElementById('confirm-edit-grade');
+    if (confirmEditGradeBtn) {
+        confirmEditGradeBtn.addEventListener('click', () => {
+            const name = document.getElementById('edit-grade-name').value;
+            const value = parseFloat(document.getElementById('edit-grade-value').value);
+            const weight = parseFloat(document.getElementById('edit-grade-weight').value);
+            const index = parseInt(document.getElementById('edit-grade-index').value);
+
+            if (name && !isNaN(value) && value >= 0 && value <= 100 && 
+                !isNaN(weight) && weight > 0 && !isNaN(index)) {
+                const classes = getClasses();
+                const selectedClass = classes.find(c => c.id === parseInt(document.querySelector('.editable-name h4').dataset.id));
+                
+                if (selectedClass && selectedClass.grades && selectedClass.grades[index]) {
+                    const updatedGrades = [...selectedClass.grades];
+                    updatedGrades[index] = { name, value, weight };
+                    updateClassDetails(selectedClass.id, { grades: updatedGrades });
+                    
+                    const modal = document.getElementById('edit-grade-modal');
+                    const modalInstance = M.Modal.getInstance(modal);
+                    modalInstance.close();
+                    // Reset form
+                    document.getElementById('edit-grade-form').reset();
+                }
+            } else {
+                M.toast({html: 'Please enter a valid grade name, value (0-100), and weight (> 0)'});
             }
         });
     }

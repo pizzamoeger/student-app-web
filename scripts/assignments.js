@@ -1,18 +1,5 @@
 import { getCurrentSemester, getSemesters, getAssignments, updateAssignments, getClasses, initializeGlobalState, isStateInitialized } from './globalState.js';
 
-// Assignment structure in localStorage:
-// assignments = [
-//   {
-//     id: string,
-//     name: string,
-//     classId: string,
-//     dueDate: string (YYYY-MM-DD),
-//     description: string,
-//     status: 'pending' | 'in-progress' | 'completed',
-//     createdAt: number (timestamp)
-//   }
-// ]
-
 let assignments = [];
 let currentlyEditingId = null;
 
